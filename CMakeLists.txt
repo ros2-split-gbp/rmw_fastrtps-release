@@ -16,8 +16,13 @@ cmake_minimum_required(VERSION 3.5)
 
 project(rmw_fastrtps_cpp)
 
-if(NOT WIN32)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Wpedantic")
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 find_package(ament_cmake_ros REQUIRED)
@@ -27,6 +32,7 @@ find_package(rcutils REQUIRED)
 find_package(fastrtps_cmake_module REQUIRED)
 find_package(fastcdr REQUIRED CONFIG)
 find_package(fastrtps REQUIRED CONFIG)
+find_package(FastRTPS REQUIRED MODULE)
 
 find_package(rmw REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
@@ -59,7 +65,7 @@ ament_target_dependencies(rmw_fastrtps_cpp
 
 configure_rmw_library(rmw_fastrtps_cpp)
 
-ament_export_libraries(rmw_fastrtps_cpp fastcdr fastrtps)
+ament_export_libraries(rmw_fastrtps_cpp ${FastRTPS_LIBRARIES})
 if(NOT WIN32 AND NOT ANDROID)
   ament_export_libraries(pthread)
 endif()
