@@ -1,0 +1,12 @@
+Source: ros-r2b3-rmw-fastrtps-cpp
+Section: misc
+Priority: extra
+Maintainer: Ricardo González <ricardogonzalez@eprosima.com>
+Build-Depends: debhelper (>= 9.0.0), ros-r2b3-ament-cmake-ros, ros-r2b3-ament-lint-auto, ros-r2b3-ament-lint-common, ros-r2b3-fastcdr, ros-r2b3-fastrtps, ros-r2b3-fastrtps-cmake-module, ros-r2b3-rcutils, ros-r2b3-rmw, ros-r2b3-rosidl-generator-c, ros-r2b3-rosidl-generator-cpp, ros-r2b3-rosidl-typesupport-introspection-c, ros-r2b3-rosidl-typesupport-introspection-cpp, ros-r2b3-ros-workspace
+Homepage: 
+Standards-Version: 3.9.2
+
+Package: ros-r2b3-rmw-fastrtps-cpp
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-r2b3-ament-cmake, ros-r2b3-fastcdr, ros-r2b3-fastrtps, ros-r2b3-fastrtps-cmake-module, ros-r2b3-rcutils, ros-r2b3-rmw, ros-r2b3-rosidl-generator-c, ros-r2b3-rosidl-generator-cpp, ros-r2b3-rosidl-typesupport-introspection-c, ros-r2b3-rosidl-typesupport-introspection-cpp, ros-r2b3-ros-workspace
+Description: Implement the ROS middleware interface using eProsima FastRTPS static code generation in C++.
