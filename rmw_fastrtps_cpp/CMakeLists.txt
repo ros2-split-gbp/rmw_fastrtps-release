@@ -50,7 +50,41 @@ ament_export_dependencies(rosidl_typesupport_introspection_cpp)
 include_directories(include)
 
 add_library(rmw_fastrtps_cpp
-  src/functions.cpp
+  src/client_service_common.cpp
+  src/demangle.cpp
+  src/get_client.cpp
+  src/get_participant.cpp
+  src/get_publisher.cpp
+  src/get_service.cpp
+  src/get_subscriber.cpp
+  src/identifier.cpp
+  src/namespace_prefix.cpp
+  src/qos.cpp
+  src/rmw_init.cpp
+  src/rmw_client.cpp
+  src/rmw_compare_gids_equal.cpp
+  src/rmw_count.cpp
+  src/rmw_get_gid_for_publisher.cpp
+  src/rmw_get_implementation_identifier.cpp
+  src/rmw_guard_condition.cpp
+  src/rmw_init.cpp
+  src/rmw_node.cpp
+  src/rmw_node_names.cpp
+  src/rmw_publish.cpp
+  src/rmw_publisher.cpp
+  src/rmw_request.cpp
+  src/rmw_response.cpp
+  src/rmw_service.cpp
+  src/rmw_service_names_and_types.cpp
+  src/rmw_service_server_is_available.cpp
+  src/rmw_subscription.cpp
+  src/rmw_take.cpp
+  src/rmw_topic_names_and_types.cpp
+  src/rmw_trigger_guard_condition.cpp
+  src/rmw_wait.cpp
+  src/rmw_waitset.cpp
+  src/ros_message_serialization.cpp
+  src/type_support_common.cpp
 )
 target_link_libraries(rmw_fastrtps_cpp
   fastcdr fastrtps)
@@ -65,6 +99,12 @@ ament_target_dependencies(rmw_fastrtps_cpp
 
 configure_rmw_library(rmw_fastrtps_cpp)
 
+# Causes the visibility macros to use dllexport rather than dllimport,
+# which is appropriate when building the dll but not consuming it.
+target_compile_definitions(${PROJECT_NAME}
+PRIVATE "RMW_FASTRTPS_CPP_BUILDING_LIBRARY")
+
+ament_export_include_directories(include)
 ament_export_libraries(rmw_fastrtps_cpp)
 if(NOT WIN32 AND NOT ANDROID)
   ament_export_libraries(pthread)
