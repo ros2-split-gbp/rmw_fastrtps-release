@@ -1,0 +1,12 @@
+Source: ros-ardent-fastrtps-cmake-module
+Section: misc
+Priority: extra
+Maintainer: Ricardo Gonzalez <ricardogonzalez@eprosima.com>
+Build-Depends: debhelper (>= 9.0.0), ros-ardent-ament-cmake, ros-ardent-ament-lint-auto, ros-ardent-ament-lint-common, ros-ardent-ros-workspace
+Homepage: 
+Standards-Version: 3.9.2
+
+Package: ros-ardent-fastrtps-cmake-module
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-ardent-ros-workspace
+Description: Provide CMake module to find eProsima FastRTPS.
