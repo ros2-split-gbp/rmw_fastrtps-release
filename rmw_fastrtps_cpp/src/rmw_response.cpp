@@ -29,7 +29,8 @@
 extern "C"
 {
 rmw_ret_t
-rmw_take_response(const rmw_client_t * client,
+rmw_take_response(
+  const rmw_client_t * client,
   rmw_request_id_t * request_header,
   void * ros_response,
   bool * taken)
@@ -46,7 +47,7 @@ rmw_take_response(const rmw_client_t * client,
     return RMW_RET_ERROR;
   }
 
-  CustomClientInfo * info = static_cast<CustomClientInfo *>(client->data);
+  auto info = static_cast<CustomClientInfo *>(client->data);
   assert(info);
 
   CustomClientResponse response = info->listener_->getResponse();
@@ -67,7 +68,8 @@ rmw_take_response(const rmw_client_t * client,
 }
 
 rmw_ret_t
-rmw_send_response(const rmw_service_t * service,
+rmw_send_response(
+  const rmw_service_t * service,
   rmw_request_id_t * request_header,
   void * ros_response)
 {
@@ -82,7 +84,7 @@ rmw_send_response(const rmw_service_t * service,
     return RMW_RET_ERROR;
   }
 
-  CustomServiceInfo * info = static_cast<CustomServiceInfo *>(service->data);
+  auto info = static_cast<CustomServiceInfo *>(service->data);
   assert(info);
 
   eprosima::fastcdr::FastBuffer buffer;

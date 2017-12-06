@@ -33,39 +33,41 @@
 extern "C"
 {
 rmw_subscription_t *
-rmw_create_subscription(const rmw_node_t * node,
+rmw_create_subscription(
+  const rmw_node_t * node,
   const rosidl_message_type_support_t * type_supports,
   const char * topic_name, const rmw_qos_profile_t * qos_policies, bool ignore_local_publications)
 {
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
-    return NULL;
+    return nullptr;
   }
 
   if (node->implementation_identifier != eprosima_fastrtps_identifier) {
     RMW_SET_ERROR_MSG("node handle not from this implementation");
-    return NULL;
+    return nullptr;
   }
 
   if (!topic_name || strlen(topic_name) == 0) {
-    RMW_SET_ERROR_MSG("publisher topic is null or empty string");
+    RMW_SET_ERROR_MSG("subscription topic is null or empty string");
+    return nullptr;
   }
 
   if (!qos_policies) {
     RMW_SET_ERROR_MSG("qos_profile is null");
-    return NULL;
+    return nullptr;
   }
 
-  const CustomParticipantInfo * impl = static_cast<CustomParticipantInfo *>(node->data);
+  auto impl = static_cast<CustomParticipantInfo *>(node->data);
   if (!impl) {
     RMW_SET_ERROR_MSG("node impl is null");
-    return NULL;
+    return nullptr;
   }
 
   Participant * participant = impl->participant;
   if (!participant) {
     RMW_SET_ERROR_MSG("participant handle is null");
-    return NULL;
+    return nullptr;
   }
 
   const rosidl_message_type_support_t * type_support = get_message_typesupport_handle(
@@ -75,7 +77,7 @@ rmw_create_subscription(const rmw_node_t * node,
       type_supports, rosidl_typesupport_introspection_cpp::typesupport_identifier);
     if (!type_support) {
       RMW_SET_ERROR_MSG("type support not from this implementation");
-      return NULL;
+      return nullptr;
     }
   }
 
@@ -83,6 +85,9 @@ rmw_create_subscription(const rmw_node_t * node,
   CustomSubscriberInfo * info = nullptr;
   rmw_subscription_t * rmw_subscription = nullptr;
   SubscriberAttributes subscriberParam;
+
+  // Load default XML profile.
+  Domain::getDefaultSubscriberAttributes(subscriberParam);
 
   info = new CustomSubscriberInfo();
   info->typesupport_identifier_ = type_support->typesupport_identifier;
@@ -145,6 +150,12 @@ rmw_create_subscription(const rmw_node_t * node,
   rmw_subscription->data = info;
   rmw_subscription->topic_name =
     reinterpret_cast<const char *>(rmw_allocate(strlen(topic_name) + 1));
+
+  if (!rmw_subscription->topic_name) {
+    RMW_SET_ERROR_MSG("failed to allocate memory for subscription topic name");
+    goto fail;
+  }
+
   memcpy(const_cast<char *>(rmw_subscription->topic_name), topic_name, strlen(topic_name) + 1);
   return rmw_subscription;
 
@@ -161,7 +172,7 @@ fail:
     rmw_subscription_free(rmw_subscription);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 rmw_ret_t
@@ -187,7 +198,7 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
     return RMW_RET_ERROR;
   }
 
-  CustomSubscriberInfo * info = static_cast<CustomSubscriberInfo *>(subscription->data);
+  auto info = static_cast<CustomSubscriberInfo *>(subscription->data);
 
   if (info != nullptr) {
     if (info->subscriber_ != nullptr) {
@@ -197,7 +208,7 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
       delete info->listener_;
     }
     if (info->type_support_ != nullptr) {
-      CustomParticipantInfo * impl = static_cast<CustomParticipantInfo *>(node->data);
+      auto impl = static_cast<CustomParticipantInfo *>(node->data);
       if (!impl) {
         RMW_SET_ERROR_MSG("node impl is null");
         return RMW_RET_ERROR;

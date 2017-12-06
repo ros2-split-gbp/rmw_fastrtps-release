@@ -35,39 +35,41 @@
 extern "C"
 {
 rmw_client_t *
-rmw_create_client(const rmw_node_t * node,
+rmw_create_client(
+  const rmw_node_t * node,
   const rosidl_service_type_support_t * type_supports,
   const char * service_name, const rmw_qos_profile_t * qos_policies)
 {
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
-    return NULL;
+    return nullptr;
   }
 
   if (node->implementation_identifier != eprosima_fastrtps_identifier) {
     RMW_SET_ERROR_MSG("node handle not from this implementation");
-    return NULL;
+    return nullptr;
   }
 
   if (!service_name || strlen(service_name) == 0) {
-    RMW_SET_ERROR_MSG("publisher topic is null or empty string");
+    RMW_SET_ERROR_MSG("client topic is null or empty string");
+    return nullptr;
   }
 
   if (!qos_policies) {
     RMW_SET_ERROR_MSG("qos_profile is null");
-    return NULL;
+    return nullptr;
   }
 
-  const CustomParticipantInfo * impl = static_cast<CustomParticipantInfo *>(node->data);
+  auto impl = static_cast<CustomParticipantInfo *>(node->data);
   if (!impl) {
     RMW_SET_ERROR_MSG("node impl is null");
-    return NULL;
+    return nullptr;
   }
 
   Participant * participant = impl->participant;
   if (!participant) {
     RMW_SET_ERROR_MSG("participant handle is null");
-    return NULL;
+    return nullptr;
   }
 
   const rosidl_service_type_support_t * type_support = get_service_typesupport_handle(
@@ -77,7 +79,7 @@ rmw_create_client(const rmw_node_t * node,
       type_supports, rosidl_typesupport_introspection_cpp::typesupport_identifier);
     if (!type_support) {
       RMW_SET_ERROR_MSG("type support not from this implementation");
-      return NULL;
+      return nullptr;
     }
   }
 
@@ -180,7 +182,7 @@ rmw_create_client(const rmw_node_t * node,
     goto fail;
   }
   info->request_publisher_ =
-    Domain::createPublisher(participant, publisherParam, NULL);
+    Domain::createPublisher(participant, publisherParam, nullptr);
   if (!info->request_publisher_) {
     RMW_SET_ERROR_MSG("create_publisher() could not create publisher");
     goto fail;
@@ -189,6 +191,11 @@ rmw_create_client(const rmw_node_t * node,
   info->writer_guid_ = info->request_publisher_->getGuid();
 
   rmw_client = rmw_client_allocate();
+  if (!rmw_client) {
+    RMW_SET_ERROR_MSG("failed to allocate memory for client");
+    goto fail;
+  }
+
   rmw_client->implementation_identifier = eprosima_fastrtps_identifier;
   rmw_client->data = info;
   rmw_client->service_name = reinterpret_cast<const char *>(
@@ -202,7 +209,6 @@ rmw_create_client(const rmw_node_t * node,
   return rmw_client;
 
 fail:
-
   if (info != nullptr) {
     if (info->request_publisher_ != nullptr) {
       Domain::removePublisher(info->request_publisher_);
@@ -231,15 +237,18 @@ fail:
     }
 
     delete info;
+    info = nullptr;
   }
 
-  if (rmw_client->service_name != nullptr) {
-    rmw_free(const_cast<char *>(rmw_client->service_name));
-    rmw_client->service_name = nullptr;
+  if (nullptr != rmw_client) {
+    if (rmw_client->service_name != nullptr) {
+      rmw_free(const_cast<char *>(rmw_client->service_name));
+      rmw_client->service_name = nullptr;
+    }
+    rmw_client_free(rmw_client);
   }
-  rmw_client_free(rmw_client);
 
-  return NULL;
+  return nullptr;
 }
 
 rmw_ret_t
@@ -255,7 +264,7 @@ rmw_destroy_client(rmw_node_t * node, rmw_client_t * client)
     return RMW_RET_ERROR;
   }
 
-  CustomClientInfo * info = static_cast<CustomClientInfo *>(client->data);
+  auto info = static_cast<CustomClientInfo *>(client->data);
   if (info != nullptr) {
     if (info->response_subscriber_ != nullptr) {
       Domain::removeSubscriber(info->response_subscriber_);
