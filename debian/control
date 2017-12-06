@@ -1,0 +1,12 @@
+Source: ros-ardent-rmw-fastrtps-cpp
+Section: misc
+Priority: extra
+Maintainer: Ricardo González <ricardogonzalez@eprosima.com>
+Build-Depends: debhelper (>= 9.0.0), ros-ardent-ament-cmake-ros, ros-ardent-ament-lint-auto, ros-ardent-ament-lint-common, ros-ardent-fastcdr, ros-ardent-fastrtps, ros-ardent-fastrtps-cmake-module, ros-ardent-rcutils, ros-ardent-rmw, ros-ardent-rosidl-generator-c, ros-ardent-rosidl-typesupport-introspection-c, ros-ardent-rosidl-typesupport-introspection-cpp, ros-ardent-ros-workspace
+Homepage: 
+Standards-Version: 3.9.2
+
+Package: ros-ardent-rmw-fastrtps-cpp
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-ardent-ros-workspace
+Description: Implement the ROS middleware interface using eProsima FastRTPS static code generation in C++.
