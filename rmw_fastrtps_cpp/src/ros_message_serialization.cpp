@@ -15,18 +15,42 @@
 #include "fastcdr/Cdr.h"
 #include "fastcdr/FastBuffer.h"
 
-#include "type_support_common.hpp"
+#include "./type_support_common.hpp"
 
-bool
-_serialize_ros_message(
-  const void * ros_message, eprosima::fastcdr::Cdr & ser, void * untyped_typesupport,
+size_t
+_get_serialized_size(
+  const void * ros_message,
+  void * untyped_typesupport,
   const char * typesupport_identifier)
 {
   if (using_introspection_c_typesupport(typesupport_identifier)) {
     auto typed_typesupport = static_cast<MessageTypeSupport_c *>(untyped_typesupport);
+    return typed_typesupport->getEstimatedSerializedSize(ros_message);
+  } else if (using_introspection_cpp_typesupport(typesupport_identifier)) {
+    auto typed_typesupport = static_cast<MessageTypeSupport_cpp *>(untyped_typesupport);
+    return typed_typesupport->getEstimatedSerializedSize(ros_message);
+  }
+  RMW_SET_ERROR_MSG("Unknown typesupport identifier");
+  return 0;
+}
+
+bool
+_serialize_ros_message(
+  const void * ros_message,
+  eprosima::fastcdr::FastBuffer & buffer,
+  eprosima::fastcdr::Cdr & ser,
+  void * untyped_typesupport,
+  const char * typesupport_identifier)
+{
+  if (using_introspection_c_typesupport(typesupport_identifier)) {
+    auto typed_typesupport = static_cast<MessageTypeSupport_c *>(untyped_typesupport);
+    size_t estimated_size = typed_typesupport->getEstimatedSerializedSize(ros_message);
+    buffer.reserve(estimated_size);
     return typed_typesupport->serializeROSmessage(ros_message, ser);
   } else if (using_introspection_cpp_typesupport(typesupport_identifier)) {
     auto typed_typesupport = static_cast<MessageTypeSupport_cpp *>(untyped_typesupport);
+    size_t estimated_size = typed_typesupport->getEstimatedSerializedSize(ros_message);
+    buffer.reserve(estimated_size);
     return typed_typesupport->serializeROSmessage(ros_message, ser);
   }
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
@@ -35,15 +59,17 @@ _serialize_ros_message(
 
 bool
 _deserialize_ros_message(
-  eprosima::fastcdr::FastBuffer * buffer, void * ros_message, void * untyped_typesupport,
+  eprosima::fastcdr::Cdr & deser,
+  void * ros_message,
+  void * untyped_typesupport,
   const char * typesupport_identifier)
 {
   if (using_introspection_c_typesupport(typesupport_identifier)) {
     auto typed_typesupport = static_cast<TypeSupport_c *>(untyped_typesupport);
-    return typed_typesupport->deserializeROSmessage(buffer, ros_message);
+    return typed_typesupport->deserializeROSmessage(deser, ros_message);
   } else if (using_introspection_cpp_typesupport(typesupport_identifier)) {
     auto typed_typesupport = static_cast<TypeSupport_cpp *>(untyped_typesupport);
-    return typed_typesupport->deserializeROSmessage(buffer, ros_message);
+    return typed_typesupport->deserializeROSmessage(deser, ros_message);
   }
   RMW_SET_ERROR_MSG("Unknown typesupport identifier");
   return false;

@@ -24,6 +24,7 @@
 #include "rmw_fastrtps_cpp/custom_client_info.hpp"
 #include "rmw_fastrtps_cpp/custom_service_info.hpp"
 #include "rmw_fastrtps_cpp/identifier.hpp"
+#include "rmw_fastrtps_cpp/TypeSupport.hpp"
 #include "ros_message_serialization.hpp"
 
 extern "C"
@@ -50,16 +51,18 @@ rmw_take_response(
   auto info = static_cast<CustomClientInfo *>(client->data);
   assert(info);
 
-  CustomClientResponse response = info->listener_->getResponse();
+  CustomClientResponse response;
 
-  if (response.buffer_ != nullptr) {
-    _deserialize_ros_message(response.buffer_, ros_response, info->response_type_support_,
-      info->typesupport_identifier_);
+  if (info->listener_->getResponse(response)) {
+    eprosima::fastcdr::Cdr deser(
+      *response.buffer_,
+      eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
+      eprosima::fastcdr::Cdr::DDS_CDR);
+    _deserialize_ros_message(
+      deser, ros_response, info->response_type_support_, info->typesupport_identifier_);
 
     request_header->sequence_number = ((int64_t)response.sample_identity_.sequence_number().high) <<
       32 | response.sample_identity_.sequence_number().low;
-
-    delete response.buffer_;
 
     *taken = true;
   }
@@ -87,12 +90,6 @@ rmw_send_response(
   auto info = static_cast<CustomServiceInfo *>(service->data);
   assert(info);
 
-  eprosima::fastcdr::FastBuffer buffer;
-  eprosima::fastcdr::Cdr ser(buffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-    eprosima::fastcdr::Cdr::DDS_CDR);
-
-  _serialize_ros_message(ros_response, ser, info->response_type_support_,
-    info->typesupport_identifier_);
   eprosima::fastrtps::rtps::WriteParams wparams;
   memcpy(&wparams.related_sample_identity().writer_guid(), request_header->writer_guid,
     sizeof(eprosima::fastrtps::rtps::GUID_t));
@@ -101,7 +98,11 @@ rmw_send_response(
   wparams.related_sample_identity().sequence_number().low =
     (int32_t)(request_header->sequence_number & 0xFFFFFFFF);
 
-  if (info->response_publisher_->write(&ser, wparams)) {
+  rmw_fastrtps_cpp::SerializedData data;
+  data.is_cdr_buffer = false;
+  data.data = const_cast<void *>(ros_response);
+
+  if (info->response_publisher_->write(&data, wparams)) {
     returnedValue = RMW_RET_OK;
   } else {
     RMW_SET_ERROR_MSG("cannot publish data");

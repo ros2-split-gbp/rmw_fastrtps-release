@@ -18,13 +18,16 @@
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
-#include "assign_partitions.hpp"
 #include "rmw_fastrtps_cpp/identifier.hpp"
 #include "namespace_prefix.hpp"
 #include "qos.hpp"
 #include "rmw_fastrtps_cpp/custom_participant_info.hpp"
 #include "rmw_fastrtps_cpp/custom_publisher_info.hpp"
 #include "type_support_common.hpp"
+
+using Domain = eprosima::fastrtps::Domain;
+using Participant = eprosima::fastrtps::Participant;
+using TopicDataType = eprosima::fastrtps::TopicDataType;
 
 extern "C"
 {
@@ -79,8 +82,8 @@ rmw_create_publisher(
 
   CustomPublisherInfo * info = nullptr;
   rmw_publisher_t * rmw_publisher = nullptr;
-  PublisherAttributes publisherParam;
-  const GUID_t * guid = nullptr;
+  eprosima::fastrtps::PublisherAttributes publisherParam;
+  const eprosima::fastrtps::rtps::GUID_t * guid = nullptr;
 
   // Load default XML profile.
   Domain::getDefaultPublisherAttributes(publisherParam);
@@ -99,32 +102,16 @@ rmw_create_publisher(
     _register_type(participant, info->type_support_, info->typesupport_identifier_);
   }
 
-  publisherParam.qos.m_publishMode.kind = ASYNCHRONOUS_PUBLISH_MODE;
-  publisherParam.historyMemoryPolicy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
-  publisherParam.topic.topicKind = NO_KEY;
+  publisherParam.qos.m_publishMode.kind = eprosima::fastrtps::ASYNCHRONOUS_PUBLISH_MODE;
+  publisherParam.historyMemoryPolicy =
+    eprosima::fastrtps::rtps::PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
+  publisherParam.topic.topicKind = eprosima::fastrtps::rtps::NO_KEY;
   publisherParam.topic.topicDataType = type_name;
-  rcutils_ret_t ret = _assign_partitions_to_attributes(
-    topic_name, ros_topic_prefix, qos_policies->avoid_ros_namespace_conventions, &publisherParam);
-  if (ret != RCUTILS_RET_OK) {
-    // error msg already set
-    goto fail;
+  if (!qos_policies->avoid_ros_namespace_conventions) {
+    publisherParam.topic.topicName = std::string(ros_topic_prefix) + topic_name;
+  } else {
+    publisherParam.topic.topicName = topic_name;
   }
-
-#if HAVE_SECURITY
-  // see if our participant has a security property set
-  if (eprosima::fastrtps::PropertyPolicyHelper::find_property(
-      participant->getAttributes().rtps.properties,
-      std::string("dds.sec.crypto.plugin")))
-  {
-    // set the encryption property on the publisher
-    PropertyPolicy publisher_property_policy;
-    publisher_property_policy.properties().emplace_back(
-      "rtps.endpoint.submessage_protection_kind", "ENCRYPT");
-    publisher_property_policy.properties().emplace_back(
-      "rtps.endpoint.payload_protection_kind", "ENCRYPT");
-    publisherParam.properties = publisher_property_policy;
-  }
-#endif
 
   // 1 Heartbeat every 10ms
   // publisherParam.times.heartbeatPeriod.seconds = 0;

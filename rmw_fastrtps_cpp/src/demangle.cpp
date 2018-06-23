@@ -25,11 +25,7 @@
 std::string
 _demangle_if_ros_topic(const std::string & topic_name)
 {
-  std::string prefix = _get_ros_prefix_if_exists(topic_name);
-  if (prefix.length()) {
-    return topic_name.substr(strlen(ros_topic_prefix));
-  }
-  return topic_name;
+  return _strip_ros_prefix_if_exists(topic_name);
 }
 
 /// Return the demangled ROS type or the original if not a ROS type.
@@ -93,7 +89,7 @@ _demangle_service_from_topic(const std::string & topic_name)
       break;
     }
   }
-  if (suffix_position == std::string::npos) {
+  if (std::string::npos == suffix_position) {
     RCUTILS_LOG_WARN_NAMED("rmw_fastrtps_cpp",
       "service topic has prefix but no suffix"
       ", report this: '%s'", topic_name.c_str())
@@ -112,7 +108,7 @@ _demangle_service_type_only(const std::string & dds_type_name)
 {
   std::string ns_substring = "::srv::dds_::";
   size_t ns_substring_position = dds_type_name.find(ns_substring);
-  if (ns_substring_position == std::string::npos) {
+  if (std::string::npos == ns_substring_position) {
     // not a ROS service type
     return "";
   }
@@ -135,7 +131,7 @@ _demangle_service_type_only(const std::string & dds_type_name)
       break;
     }
   }
-  if (suffix_position == std::string::npos) {
+  if (std::string::npos == suffix_position) {
     RCUTILS_LOG_WARN_NAMED("rmw_fastrtps_cpp",
       "service type contains '::srv::dds_::' but does not have a suffix"
       ", report this: '%s'", dds_type_name.c_str())

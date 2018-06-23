@@ -23,7 +23,6 @@
 
 #include "rosidl_typesupport_introspection_c/identifier.h"
 
-#include "assign_partitions.hpp"
 #include "client_service_common.hpp"
 #include "rmw_fastrtps_cpp/identifier.hpp"
 #include "namespace_prefix.hpp"
@@ -31,6 +30,10 @@
 #include "type_support_common.hpp"
 #include "rmw_fastrtps_cpp/custom_client_info.hpp"
 #include "rmw_fastrtps_cpp/custom_participant_info.hpp"
+
+using Domain = eprosima::fastrtps::Domain;
+using Participant = eprosima::fastrtps::Participant;
+using TopicDataType = eprosima::fastrtps::TopicDataType;
 
 extern "C"
 {
@@ -84,8 +87,8 @@ rmw_create_client(
   }
 
   CustomClientInfo * info = nullptr;
-  SubscriberAttributes subscriberParam;
-  PublisherAttributes publisherParam;
+  eprosima::fastrtps::SubscriberAttributes subscriberParam;
+  eprosima::fastrtps::PublisherAttributes publisherParam;
   rmw_client_t * rmw_client = nullptr;
 
   info = new CustomClientInfo();
@@ -121,28 +124,26 @@ rmw_create_client(
     _register_type(participant, info->response_type_support_, info->typesupport_identifier_);
   }
 
-  subscriberParam.topic.topicKind = NO_KEY;
+  subscriberParam.topic.topicKind = eprosima::fastrtps::rtps::NO_KEY;
   subscriberParam.topic.topicDataType = response_type_name;
-  subscriberParam.historyMemoryPolicy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
-  rcutils_ret_t ret = _assign_partitions_to_attributes(
-    service_name, ros_service_response_prefix,
-    qos_policies->avoid_ros_namespace_conventions, &subscriberParam);
-  if (ret != RCUTILS_RET_OK) {
-    // error msg already set
-    goto fail;
+  subscriberParam.historyMemoryPolicy =
+    eprosima::fastrtps::rtps::PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
+  if (!qos_policies->avoid_ros_namespace_conventions) {
+    subscriberParam.topic.topicName = std::string(ros_service_response_prefix) + service_name;
+  } else {
+    subscriberParam.topic.topicName = service_name;
   }
   subscriberParam.topic.topicName += "Reply";
 
-  publisherParam.topic.topicKind = NO_KEY;
+  publisherParam.topic.topicKind = eprosima::fastrtps::rtps::NO_KEY;
   publisherParam.topic.topicDataType = request_type_name;
-  publisherParam.qos.m_publishMode.kind = ASYNCHRONOUS_PUBLISH_MODE;
-  publisherParam.historyMemoryPolicy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
-  ret = _assign_partitions_to_attributes(
-    service_name, ros_service_requester_prefix,
-    qos_policies->avoid_ros_namespace_conventions, &publisherParam);
-  if (ret != RCUTILS_RET_OK) {
-    // error msg already set
-    goto fail;
+  publisherParam.qos.m_publishMode.kind = eprosima::fastrtps::ASYNCHRONOUS_PUBLISH_MODE;
+  publisherParam.historyMemoryPolicy =
+    eprosima::fastrtps::rtps::PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
+  if (!qos_policies->avoid_ros_namespace_conventions) {
+    publisherParam.topic.topicName = std::string(ros_service_requester_prefix) + service_name;
+  } else {
+    publisherParam.topic.topicName = service_name;
   }
   publisherParam.topic.topicName += "Request";
 
@@ -154,13 +155,7 @@ rmw_create_client(
     "Sub Topic %s", subscriberParam.topic.topicName.c_str())
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_fastrtps_cpp",
-    "Sub Partition %s", subscriberParam.qos.m_partition.getNames()[0].c_str())
-  RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_fastrtps_cpp",
     "Pub Topic %s", publisherParam.topic.topicName.c_str())
-  RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_fastrtps_cpp",
-    "Pub Partition %s", publisherParam.qos.m_partition.getNames()[0].c_str())
   RCUTILS_LOG_DEBUG_NAMED("rmw_fastrtps_cpp", "***********")
 
   // Create Client Subscriber and set QoS

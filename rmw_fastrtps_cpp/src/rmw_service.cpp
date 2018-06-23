@@ -31,9 +31,9 @@
 #include "rmw/rmw.h"
 
 #include "rosidl_typesupport_introspection_cpp/identifier.hpp"
+
 #include "rosidl_typesupport_introspection_c/identifier.h"
 
-#include "assign_partitions.hpp"
 #include "client_service_common.hpp"
 #include "rmw_fastrtps_cpp/identifier.hpp"
 #include "namespace_prefix.hpp"
@@ -41,6 +41,10 @@
 #include "type_support_common.hpp"
 #include "rmw_fastrtps_cpp/custom_participant_info.hpp"
 #include "rmw_fastrtps_cpp/custom_service_info.hpp"
+
+using Domain = eprosima::fastrtps::Domain;
+using Participant = eprosima::fastrtps::Participant;
+using TopicDataType = eprosima::fastrtps::TopicDataType;
 
 extern "C"
 {
@@ -94,8 +98,8 @@ rmw_create_service(
   }
 
   CustomServiceInfo * info = nullptr;
-  SubscriberAttributes subscriberParam;
-  PublisherAttributes publisherParam;
+  eprosima::fastrtps::SubscriberAttributes subscriberParam;
+  eprosima::fastrtps::PublisherAttributes publisherParam;
   rmw_service_t * rmw_service = nullptr;
 
   info = new CustomServiceInfo();
@@ -131,28 +135,26 @@ rmw_create_service(
     _register_type(participant, info->response_type_support_, info->typesupport_identifier_);
   }
 
-  subscriberParam.topic.topicKind = NO_KEY;
-  subscriberParam.historyMemoryPolicy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
+  subscriberParam.topic.topicKind = eprosima::fastrtps::rtps::NO_KEY;
+  subscriberParam.historyMemoryPolicy =
+    eprosima::fastrtps::rtps::PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
   subscriberParam.topic.topicDataType = request_type_name;
-  rcutils_ret_t ret = _assign_partitions_to_attributes(
-    service_name, ros_service_requester_prefix,
-    qos_policies->avoid_ros_namespace_conventions, &subscriberParam);
-  if (ret != RCUTILS_RET_OK) {
-    // error msg already set
-    goto fail;
+  if (!qos_policies->avoid_ros_namespace_conventions) {
+    subscriberParam.topic.topicName = std::string(ros_service_requester_prefix) + service_name;
+  } else {
+    subscriberParam.topic.topicName = service_name;
   }
   subscriberParam.topic.topicName += "Request";
 
-  publisherParam.topic.topicKind = NO_KEY;
+  publisherParam.topic.topicKind = eprosima::fastrtps::rtps::NO_KEY;
   publisherParam.topic.topicDataType = response_type_name;
-  publisherParam.qos.m_publishMode.kind = ASYNCHRONOUS_PUBLISH_MODE;
-  publisherParam.historyMemoryPolicy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
-  ret = _assign_partitions_to_attributes(
-    service_name, ros_service_response_prefix,
-    qos_policies->avoid_ros_namespace_conventions, &publisherParam);
-  if (ret != RCUTILS_RET_OK) {
-    // error msg already set
-    goto fail;
+  publisherParam.qos.m_publishMode.kind = eprosima::fastrtps::ASYNCHRONOUS_PUBLISH_MODE;
+  publisherParam.historyMemoryPolicy =
+    eprosima::fastrtps::rtps::PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
+  if (!qos_policies->avoid_ros_namespace_conventions) {
+    publisherParam.topic.topicName = std::string(ros_service_response_prefix) + service_name;
+  } else {
+    publisherParam.topic.topicName = service_name;
   }
   publisherParam.topic.topicName += "Reply";
 
@@ -164,13 +166,7 @@ rmw_create_service(
     "Sub Topic %s", subscriberParam.topic.topicName.c_str())
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_fastrtps_cpp",
-    "Sub Partition %s", subscriberParam.qos.m_partition.getNames()[0].c_str())
-  RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_fastrtps_cpp",
     "Pub Topic %s", publisherParam.topic.topicName.c_str())
-  RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_fastrtps_cpp",
-    "Pub Partition %s", publisherParam.qos.m_partition.getNames()[0].c_str())
   RCUTILS_LOG_DEBUG_NAMED("rmw_fastrtps_cpp", "***********")
 
   // Create Service Subscriber and set QoS
@@ -199,6 +195,10 @@ rmw_create_service(
   }
 
   rmw_service = rmw_service_allocate();
+  if (!rmw_service) {
+    RMW_SET_ERROR_MSG("failed to allocate memory for service");
+    goto fail;
+  }
   rmw_service->implementation_identifier = eprosima_fastrtps_identifier;
   rmw_service->data = info;
   rmw_service->service_name = reinterpret_cast<const char *>(
@@ -237,7 +237,7 @@ fail:
     delete info;
   }
 
-  if (rmw_service->service_name != nullptr) {
+  if (rmw_service && rmw_service->service_name) {
     rmw_free(const_cast<char *>(rmw_service->service_name));
     rmw_service->service_name = nullptr;
   }

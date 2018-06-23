@@ -46,6 +46,11 @@
 #include "rmw_fastrtps_cpp/identifier.hpp"
 #include "rmw_fastrtps_cpp/custom_participant_info.hpp"
 
+using Domain = eprosima::fastrtps::Domain;
+using Participant = eprosima::fastrtps::Participant;
+using ParticipantAttributes = eprosima::fastrtps::ParticipantAttributes;
+using StatefulReader = eprosima::fastrtps::rtps::StatefulReader;
+
 extern "C"
 {
 rmw_node_t *
@@ -64,9 +69,9 @@ create_node(
     return nullptr;
   }
 
-  eprosima::fastrtps::Log::SetVerbosity(eprosima::fastrtps::Log::Error);
-
   // Declare everything before beginning to create things.
+  ::ParticipantListener * listener = nullptr;
+  Participant * participant = nullptr;
   rmw_guard_condition_t * graph_guard_condition = nullptr;
   CustomParticipantInfo * node_impl = nullptr;
   rmw_node_t * node_handle = nullptr;
@@ -74,7 +79,14 @@ create_node(
   WriterInfo * tnat_2 = nullptr;
   std::pair<StatefulReader *, StatefulReader *> edp_readers;
 
-  Participant * participant = Domain::createParticipant(participantAttrs);
+  try {
+    listener = new ::ParticipantListener();
+  } catch (std::bad_alloc &) {
+    RMW_SET_ERROR_MSG("failed to allocate participant listener");
+    goto fail;
+  }
+
+  participant = Domain::createParticipant(participantAttrs, listener);
   if (!participant) {
     RMW_SET_ERROR_MSG("create_node() could not create participant");
     return nullptr;
@@ -100,6 +112,7 @@ create_node(
   }
   node_handle->implementation_identifier = eprosima_fastrtps_identifier;
   node_impl->participant = participant;
+  node_impl->listener = listener;
   node_impl->graph_guard_condition = graph_guard_condition;
   node_handle->data = node_impl;
 
@@ -127,6 +140,16 @@ create_node(
   node_impl->secondaryPubListener = tnat_2;
 
   edp_readers = participant->getEDPReaders();
+  if (!edp_readers.first) {
+    RMW_SET_ERROR_MSG("edp_readers.first is null");
+    goto fail;
+  }
+
+  if (!edp_readers.second) {
+    RMW_SET_ERROR_MSG("edp_readers.second is null");
+    goto fail;
+  }
+
   if (!(edp_readers.first->setListener(tnat_1) & edp_readers.second->setListener(tnat_2))) {
     RMW_SET_ERROR_MSG("Failed to attach ROS related logic to the Participant");
     goto fail;
@@ -152,6 +175,7 @@ fail:
         "failed to destroy guard condition during error handling")
     }
   }
+  rmw_free(listener);
   if (participant) {
     Domain::removeParticipant(participant);
   }
@@ -160,16 +184,21 @@ fail:
 
 bool
 get_security_file_paths(
-  std::array<std::string, 3> & security_files_paths, const char * node_secure_root)
+  std::array<std::string, 6> & security_files_paths, const char * node_secure_root)
 {
-  // here assume only 3 files for security
-  const char * file_names[3] = {"ca.cert.pem", "cert.pem", "key.pem"};
+  // here assume only 6 files for security
+  const char * file_names[6] = {
+    "ca.cert.pem", "cert.pem", "key.pem",
+    "ca.cert.pem", "governance.p7s", "permissions.p7s"
+  };
   size_t num_files = sizeof(file_names) / sizeof(char *);
 
   std::string file_prefix("file://");
 
   for (size_t i = 0; i < num_files; i++) {
-    char * file_path = rcutils_join_path(node_secure_root, file_names[i]);
+    rcutils_allocator_t allocator = rcutils_get_default_allocator();
+    char * file_path = rcutils_join_path(node_secure_root, file_names[i], allocator);
+
     if (!file_path) {
       return false;
     }
@@ -177,11 +206,11 @@ get_security_file_paths(
     if (rcutils_is_readable(file_path)) {
       security_files_paths[i] = file_prefix + std::string(file_path);
     } else {
-      free(file_path);
+      allocator.deallocate(file_path, allocator.state);
       return false;
     }
 
-    free(file_path);
+    allocator.deallocate(file_path, allocator.state);
   }
 
   return true;
@@ -209,15 +238,26 @@ rmw_create_node(
   Domain::getDefaultParticipantAttributes(participantAttrs);
 
   participantAttrs.rtps.builtin.domainId = static_cast<uint32_t>(domain_id);
+  // since the participant name is not part of the DDS spec
   participantAttrs.rtps.setName(name);
+  // the node name is also set in the user_data
+  size_t name_length = strlen(name);
+  const char prefix[6] = "name=";
+  participantAttrs.rtps.userData.resize(name_length + sizeof(prefix));
+  memcpy(participantAttrs.rtps.userData.data(), prefix, sizeof(prefix) - 1);
+  for (size_t i = 0; i < name_length; ++i) {
+    participantAttrs.rtps.userData[sizeof(prefix) - 1 + i] = name[i];
+  }
+  participantAttrs.rtps.userData[sizeof(prefix) - 1 + name_length] = ';';
 
   if (security_options->security_root_path) {
     // if security_root_path provided, try to find the key and certificate files
 #if HAVE_SECURITY
-    std::array<std::string, 3> security_files_paths;
+    std::array<std::string, 6> security_files_paths;
 
     if (get_security_file_paths(security_files_paths, security_options->security_root_path)) {
-      PropertyPolicy property_policy;
+      eprosima::fastrtps::rtps::PropertyPolicy property_policy;
+      using Property = eprosima::fastrtps::rtps::Property;
       property_policy.properties().emplace_back(
         Property("dds.sec.auth.plugin", "builtin.PKI-DH"));
       property_policy.properties().emplace_back(
@@ -231,8 +271,16 @@ rmw_create_node(
         security_files_paths[2]));
       property_policy.properties().emplace_back(
         Property("dds.sec.crypto.plugin", "builtin.AES-GCM-GMAC"));
-      property_policy.properties().emplace_back(
-        Property("rtps.participant.rtps_protection_kind", "ENCRYPT"));
+
+      property_policy.properties().emplace_back(Property(
+          "dds.sec.access.plugin", "builtin.Access-Permissions"));
+      property_policy.properties().emplace_back(Property(
+          "dds.sec.access.builtin.Access-Permissions.permissions_ca", security_files_paths[3]));
+      property_policy.properties().emplace_back(Property(
+          "dds.sec.access.builtin.Access-Permissions.governance", security_files_paths[4]));
+      property_policy.properties().emplace_back(Property(
+          "dds.sec.access.builtin.Access-Permissions.permissions", security_files_paths[5]));
+
       participantAttrs.rtps.properties = property_policy;
     } else if (security_options->enforce_security) {
       RMW_SET_ERROR_MSG("couldn't find all security files!");
@@ -272,12 +320,17 @@ rmw_destroy_node(rmw_node_t * node)
 
   // Begin deleting things in the same order they were created in rmw_create_node().
   std::pair<StatefulReader *, StatefulReader *> edp_readers = participant->getEDPReaders();
-  if (!edp_readers.first->setListener(nullptr)) {
+  if (!edp_readers.first || !edp_readers.second) {
+    RMW_SET_ERROR_MSG("failed to get EDPReader listener");
+    result_ret = RMW_RET_ERROR;
+  }
+
+  if (edp_readers.first && !edp_readers.first->setListener(nullptr)) {
     RMW_SET_ERROR_MSG("failed to unset EDPReader listener");
     result_ret = RMW_RET_ERROR;
   }
   delete impl->secondarySubListener;
-  if (!edp_readers.second->setListener(nullptr)) {
+  if (edp_readers.second && !edp_readers.second->setListener(nullptr)) {
     RMW_SET_ERROR_MSG("failed to unset EDPReader listener");
     result_ret = RMW_RET_ERROR;
   }
@@ -294,9 +347,11 @@ rmw_destroy_node(rmw_node_t * node)
     result_ret = RMW_RET_ERROR;
   }
 
-  delete impl;
-
   Domain::removeParticipant(participant);
+
+  delete impl->listener;
+  impl->listener = nullptr;
+  delete impl;
 
   return result_ret;
 }

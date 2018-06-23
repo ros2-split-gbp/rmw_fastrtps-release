@@ -22,13 +22,17 @@
 #include "fastrtps/participant/Participant.h"
 #include "fastrtps/subscriber/Subscriber.h"
 
-#include "assign_partitions.hpp"
-#include "rmw_fastrtps_cpp/identifier.hpp"
-#include "namespace_prefix.hpp"
-#include "qos.hpp"
 #include "rmw_fastrtps_cpp/custom_participant_info.hpp"
 #include "rmw_fastrtps_cpp/custom_subscriber_info.hpp"
+#include "rmw_fastrtps_cpp/identifier.hpp"
+
+#include "namespace_prefix.hpp"
+#include "qos.hpp"
 #include "type_support_common.hpp"
+
+using Domain = eprosima::fastrtps::Domain;
+using Participant = eprosima::fastrtps::Participant;
+using TopicDataType = eprosima::fastrtps::TopicDataType;
 
 extern "C"
 {
@@ -84,7 +88,7 @@ rmw_create_subscription(
   (void)ignore_local_publications;
   CustomSubscriberInfo * info = nullptr;
   rmw_subscription_t * rmw_subscription = nullptr;
-  SubscriberAttributes subscriberParam;
+  eprosima::fastrtps::SubscriberAttributes subscriberParam;
 
   // Load default XML profile.
   Domain::getDefaultSubscriberAttributes(subscriberParam);
@@ -102,31 +106,15 @@ rmw_create_subscription(
     _register_type(participant, info->type_support_, info->typesupport_identifier_);
   }
 
-  subscriberParam.historyMemoryPolicy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
-  subscriberParam.topic.topicKind = NO_KEY;
+  subscriberParam.historyMemoryPolicy =
+    eprosima::fastrtps::rtps::PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
+  subscriberParam.topic.topicKind = eprosima::fastrtps::rtps::NO_KEY;
   subscriberParam.topic.topicDataType = type_name;
-  rcutils_ret_t ret = _assign_partitions_to_attributes(
-    topic_name, ros_topic_prefix, qos_policies->avoid_ros_namespace_conventions, &subscriberParam);
-  if (ret != RCUTILS_RET_OK) {
-    // error msg already set
-    goto fail;
+  if (!qos_policies->avoid_ros_namespace_conventions) {
+    subscriberParam.topic.topicName = std::string(ros_topic_prefix) + topic_name;
+  } else {
+    subscriberParam.topic.topicName = topic_name;
   }
-
-#if HAVE_SECURITY
-  // see if our subscriber has a security property set
-  if (eprosima::fastrtps::PropertyPolicyHelper::find_property(
-      participant->getAttributes().rtps.properties,
-      std::string("dds.sec.crypto.plugin")))
-  {
-    // set the encryption property on the subscriber
-    PropertyPolicy subscriber_property_policy;
-    subscriber_property_policy.properties().emplace_back(
-      "rtps.endpoint.submessage_protection_kind", "ENCRYPT");
-    subscriber_property_policy.properties().emplace_back(
-      "rtps.endpoint.payload_protection_kind", "ENCRYPT");
-    subscriberParam.properties = subscriber_property_policy;
-  }
-#endif
 
   if (!get_datareader_qos(*qos_policies, subscriberParam)) {
     RMW_SET_ERROR_MSG("failed to get datareader qos");
