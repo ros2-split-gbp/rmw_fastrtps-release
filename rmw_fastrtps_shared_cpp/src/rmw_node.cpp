@@ -46,9 +46,6 @@
 #include "rmw_fastrtps_shared_cpp/custom_participant_info.hpp"
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 
-#include "reader_info.hpp"
-#include "writer_info.hpp"
-
 using Domain = eprosima::fastrtps::Domain;
 using Participant = eprosima::fastrtps::Participant;
 using ParticipantAttributes = eprosima::fastrtps::ParticipantAttributes;
@@ -79,12 +76,15 @@ create_node(
   rmw_guard_condition_t * graph_guard_condition = nullptr;
   CustomParticipantInfo * node_impl = nullptr;
   rmw_node_t * node_handle = nullptr;
-  ReaderInfo * tnat_1 = nullptr;
-  WriterInfo * tnat_2 = nullptr;
-  std::pair<StatefulReader *, StatefulReader *> edp_readers;
+
+  graph_guard_condition = __rmw_create_guard_condition(identifier);
+  if (!graph_guard_condition) {
+    // error already set
+    goto fail;
+  }
 
   try {
-    listener = new ::ParticipantListener();
+    listener = new ::ParticipantListener(graph_guard_condition);
   } catch (std::bad_alloc &) {
     RMW_SET_ERROR_MSG("failed to allocate participant listener");
     goto fail;
@@ -96,14 +96,27 @@ create_node(
     return nullptr;
   }
 
-  graph_guard_condition = __rmw_create_guard_condition(identifier);
-  if (!graph_guard_condition) {
-    // error already set
-    goto fail;
-  }
-
   try {
     node_impl = new CustomParticipantInfo();
+
+    node_impl->leave_middleware_default_qos = false;
+    const char * env_var = "RMW_FASTRTPS_USE_QOS_FROM_XML";
+    // Check if the configuration from XML has been enabled from
+    // the RMW_FASTRTPS_USE_QOS_FROM_XML env variable.
+    char * config_env_val = nullptr;
+#ifndef _WIN32
+    config_env_val = getenv(env_var);
+    if (config_env_val != nullptr) {
+      node_impl->leave_middleware_default_qos = strcmp(config_env_val, "1") == 0;
+    }
+#else
+    size_t config_env_val_size;
+    _dupenv_s(&config_env_val, &config_env_val_size, env_var);
+    if (config_env_val != nullptr) {
+      node_impl->leave_middleware_default_qos = strcmp(config_env_val, "1") == 0;
+    }
+    free(config_env_val);
+#endif
   } catch (std::bad_alloc &) {
     RMW_SET_ERROR_MSG("failed to allocate node impl struct");
     goto fail;
@@ -137,32 +150,8 @@ create_node(
   }
   memcpy(const_cast<char *>(node_handle->namespace_), namespace_, strlen(namespace_) + 1);
 
-  tnat_1 = new ReaderInfo(participant, graph_guard_condition);
-  tnat_2 = new WriterInfo(participant, graph_guard_condition);
-
-  node_impl->secondarySubListener = tnat_1;
-  node_impl->secondaryPubListener = tnat_2;
-
-  edp_readers = participant->getEDPReaders();
-  if (!edp_readers.first) {
-    RMW_SET_ERROR_MSG("edp_readers.first is null");
-    goto fail;
-  }
-
-  if (!edp_readers.second) {
-    RMW_SET_ERROR_MSG("edp_readers.second is null");
-    goto fail;
-  }
-
-  if (!(edp_readers.first->setListener(tnat_1) & edp_readers.second->setListener(tnat_2))) {
-    RMW_SET_ERROR_MSG("Failed to attach ROS related logic to the Participant");
-    goto fail;
-  }
-
   return node_handle;
 fail:
-  delete tnat_2;
-  delete tnat_1;
   if (node_handle) {
     rmw_free(const_cast<char *>(node_handle->namespace_));
     node_handle->namespace_ = nullptr;
@@ -246,11 +235,32 @@ __rmw_create_node(
   // since the participant name is not part of the DDS spec
   participantAttrs.rtps.setName(name);
 
+  bool leave_middleware_default_qos = false;
+  const char * env_var = "RMW_FASTRTPS_USE_QOS_FROM_XML";
+  // Check if the configuration from XML has been enabled from
+  // the RMW_FASTRTPS_USE_QOS_FROM_XML env variable.
+  char * config_env_val = nullptr;
+#ifndef _WIN32
+  config_env_val = getenv(env_var);
+  if (config_env_val != nullptr) {
+    leave_middleware_default_qos = strcmp(config_env_val, "1") == 0;
+  }
+#else
+  size_t config_env_val_size;
+  _dupenv_s(&config_env_val, &config_env_val_size, env_var);
+  if (config_env_val != nullptr) {
+    leave_middleware_default_qos = strcmp(config_env_val, "1") == 0;
+  }
+  free(config_env_val);
+#endif
+
   // allow reallocation to support discovery messages bigger than 5000 bytes
-  participantAttrs.rtps.builtin.readerHistoryMemoryPolicy =
-    eprosima::fastrtps::rtps::PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
-  participantAttrs.rtps.builtin.writerHistoryMemoryPolicy =
-    eprosima::fastrtps::rtps::PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
+  if (!leave_middleware_default_qos) {
+    participantAttrs.rtps.builtin.readerHistoryMemoryPolicy =
+      eprosima::fastrtps::rtps::PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
+    participantAttrs.rtps.builtin.writerHistoryMemoryPolicy =
+      eprosima::fastrtps::rtps::PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
+  }
 
   size_t length = strlen(name) + strlen("name=;") +
     strlen(namespace_) + strlen("namespace=;") + 1;
@@ -333,35 +343,18 @@ __rmw_destroy_node(
   Participant * participant = impl->participant;
 
   // Begin deleting things in the same order they were created in __rmw_create_node().
-  std::pair<StatefulReader *, StatefulReader *> edp_readers = participant->getEDPReaders();
-  if (!edp_readers.first || !edp_readers.second) {
-    RMW_SET_ERROR_MSG("failed to get EDPReader listener");
-    result_ret = RMW_RET_ERROR;
-  }
-
-  if (edp_readers.first && !edp_readers.first->setListener(nullptr)) {
-    RMW_SET_ERROR_MSG("failed to unset EDPReader listener");
-    result_ret = RMW_RET_ERROR;
-  }
-  delete impl->secondarySubListener;
-  if (edp_readers.second && !edp_readers.second->setListener(nullptr)) {
-    RMW_SET_ERROR_MSG("failed to unset EDPReader listener");
-    result_ret = RMW_RET_ERROR;
-  }
-  delete impl->secondaryPubListener;
-
   rmw_free(const_cast<char *>(node->name));
   node->name = nullptr;
   rmw_free(const_cast<char *>(node->namespace_));
   node->namespace_ = nullptr;
   rmw_node_free(node);
 
+  Domain::removeParticipant(participant);
+
   if (RMW_RET_OK != __rmw_destroy_guard_condition(impl->graph_guard_condition)) {
     RMW_SET_ERROR_MSG("failed to destroy graph guard condition");
     result_ret = RMW_RET_ERROR;
   }
-
-  Domain::removeParticipant(participant);
 
   delete impl->listener;
   impl->listener = nullptr;
