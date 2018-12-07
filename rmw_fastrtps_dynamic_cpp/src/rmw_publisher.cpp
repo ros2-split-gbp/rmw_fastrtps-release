@@ -91,7 +91,11 @@ rmw_create_publisher(
   Domain::getDefaultPublisherAttributes(publisherParam);
 
   // TODO(karsten1987) Verify consequences for std::unique_ptr?
-  info = new CustomPublisherInfo();
+  info = new (std::nothrow) CustomPublisherInfo();
+  if (!info) {
+    RMW_SET_ERROR_MSG("failed to allocate CustomPublisherInfo");
+    return nullptr;
+  }
   info->typesupport_identifier_ = type_support->typesupport_identifier;
 
   std::string type_name = _create_type_name(
@@ -104,9 +108,12 @@ rmw_create_publisher(
     _register_type(participant, info->type_support_);
   }
 
-  publisherParam.qos.m_publishMode.kind = eprosima::fastrtps::ASYNCHRONOUS_PUBLISH_MODE;
-  publisherParam.historyMemoryPolicy =
-    eprosima::fastrtps::rtps::PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
+  if (!impl->leave_middleware_default_qos) {
+    publisherParam.qos.m_publishMode.kind = eprosima::fastrtps::ASYNCHRONOUS_PUBLISH_MODE;
+    publisherParam.historyMemoryPolicy =
+      eprosima::fastrtps::rtps::PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
+  }
+
   publisherParam.topic.topicKind = eprosima::fastrtps::rtps::NO_KEY;
   publisherParam.topic.topicDataType = type_name;
   if (!qos_policies->avoid_ros_namespace_conventions) {
@@ -128,8 +135,13 @@ rmw_create_publisher(
     goto fail;
   }
 
-  info->publisher_ = Domain::createPublisher(participant, publisherParam, nullptr);
+  info->listener_ = new (std::nothrow) PubListener(info);
+  if (!info->listener_) {
+    RMW_SET_ERROR_MSG("create_publisher() could not create publisher listener");
+    goto fail;
+  }
 
+  info->publisher_ = Domain::createPublisher(participant, publisherParam, info->listener_);
   if (!info->publisher_) {
     RMW_SET_ERROR_MSG("create_publisher() could not create publisher");
     goto fail;
@@ -171,6 +183,9 @@ fail:
     if (info->type_support_ != nullptr) {
       delete info->type_support_;
     }
+    if (info->listener_ != nullptr) {
+      delete info->listener_;
+    }
     delete info;
   }
 
@@ -179,6 +194,15 @@ fail:
   }
 
   return nullptr;
+}
+
+rmw_ret_t
+rmw_publisher_count_matched_subscriptions(
+  const rmw_publisher_t * publisher,
+  size_t * subscription_count)
+{
+  return rmw_fastrtps_shared_cpp::__rmw_publisher_count_matched_subscriptions(
+    publisher, subscription_count);
 }
 
 rmw_ret_t
