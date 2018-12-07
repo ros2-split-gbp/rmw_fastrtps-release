@@ -25,6 +25,10 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+if(SECURITY)
+  find_package(OpenSSL REQUIRED)
+endif()
+
 find_package(ament_cmake_ros REQUIRED)
 
 find_package(rcutils REQUIRED)
@@ -61,6 +65,7 @@ add_library(rmw_fastrtps_cpp
   src/rmw_guard_condition.cpp
   src/rmw_init.cpp
   src/rmw_node.cpp
+  src/rmw_node_info_and_types.cpp
   src/rmw_node_names.cpp
   src/rmw_publish.cpp
   src/rmw_publisher.cpp
