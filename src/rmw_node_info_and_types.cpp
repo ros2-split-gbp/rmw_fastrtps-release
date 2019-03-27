@@ -33,8 +33,8 @@
 #include "rmw/rmw.h"
 
 #include "demangle.hpp"
-#include "namespace_prefix.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_participant_info.hpp"
+#include "rmw_fastrtps_shared_cpp/namespace_prefix.hpp"
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 
 #include "rmw_fastrtps_shared_cpp/topic_cache.hpp"
@@ -65,7 +65,7 @@ rmw_ret_t __get_guid_by_name(
     std::set<GUID_t> nodes_in_desired_namespace;
     auto namespaces = impl->listener->discovered_namespaces;
     for (auto & guid_to_namespace : impl->listener->discovered_namespaces) {
-      if (strcmp(guid_to_namespace.second.c_str(), node_namespace) == 0) {
+      if (guid_to_namespace.second == node_namespace) {
         nodes_in_desired_namespace.insert(guid_to_namespace.first);
       }
     }
@@ -74,7 +74,7 @@ rmw_ret_t __get_guid_by_name(
         impl->listener->discovered_names.end(),
         [node_name, &nodes_in_desired_namespace](const std::pair<const GUID_t,
         std::string> & pair) {
-          return strcmp(pair.second.c_str(), node_name) == 0 &&
+          return pair.second == node_name &&
           nodes_in_desired_namespace.find(pair.first) != nodes_in_desired_namespace.end();
         });
 
@@ -194,7 +194,7 @@ __copy_data_to_results(
   rmw_names_and_types_t * topic_names_and_types)
 {
   // Copy data to results handle
-  if (topics.size() > 0) {
+  if (!topics.empty()) {
     // Setup string array to store names
     rmw_ret_t rmw_ret = rmw_names_and_types_init(topic_names_and_types, topics.size(), allocator);
     if (rmw_ret != RMW_RET_OK) {
@@ -416,13 +416,13 @@ __rmw_get_service_names_and_types_by_node(
     if (node_topics != topic_cache.getParticipantToTopics().end()) {
       for (auto & topic_pair : node_topics->second) {
         std::string service_name = _demangle_service_from_topic(topic_pair.first);
-        if (!service_name.length()) {
+        if (service_name.empty()) {
           // not a service
           continue;
         }
         for (auto & itt : topic_pair.second) {
           std::string service_type = _demangle_service_type_only(itt);
-          if (service_type.length()) {
+          if (!service_type.empty()) {
             services[service_name].insert(service_type);
           }
         }
