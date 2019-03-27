@@ -34,8 +34,8 @@
 #include "rmw/rmw.h"
 
 #include "demangle.hpp"
-#include "namespace_prefix.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_participant_info.hpp"
+#include "rmw_fastrtps_shared_cpp/namespace_prefix.hpp"
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 
 #include "rmw_fastrtps_shared_cpp/topic_cache.hpp"
@@ -97,7 +97,7 @@ __rmw_get_topic_names_and_types(
   map_process(slave_target->writer_topic_cache);
 
   // Copy data to results handle
-  if (topics.size() > 0) {
+  if (!topics.empty()) {
     // Setup string array to store names
     rmw_ret_t rmw_ret = rmw_names_and_types_init(topic_names_and_types, topics.size(), allocator);
     if (rmw_ret != RMW_RET_OK) {
