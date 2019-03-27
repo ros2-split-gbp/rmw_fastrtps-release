@@ -19,10 +19,10 @@
 #include "rmw/allocators.h"
 #include "rmw/rmw.h"
 
-#include "namespace_prefix.hpp"
 #include "qos.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_client_info.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_participant_info.hpp"
+#include "rmw_fastrtps_shared_cpp/namespace_prefix.hpp"
 #include "rmw_fastrtps_shared_cpp/TypeSupport.hpp"
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 
@@ -55,6 +55,9 @@ __rmw_destroy_client(
     }
     if (info->request_publisher_ != nullptr) {
       Domain::removePublisher(info->request_publisher_);
+    }
+    if (info->pub_listener_ != nullptr) {
+      delete info->pub_listener_;
     }
     if (info->listener_ != nullptr) {
       delete info->listener_;
