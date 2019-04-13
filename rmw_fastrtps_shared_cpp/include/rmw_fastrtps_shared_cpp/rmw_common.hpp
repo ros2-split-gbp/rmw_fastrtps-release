@@ -137,6 +137,12 @@ __rmw_publisher_count_matched_subscriptions(
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
+__rmw_publisher_get_actual_qos(
+  const rmw_publisher_t * publisher,
+  rmw_qos_profile_t * qos);
+
+RMW_FASTRTPS_SHARED_CPP_PUBLIC
+rmw_ret_t
 __rmw_send_request(
   const char * identifier,
   const rmw_client_t * client,
@@ -292,7 +298,7 @@ __rmw_wait(
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_wait_set_t *
-__rmw_create_wait_set(const char * identifier, size_t max_conditions);
+__rmw_create_wait_set(const char * identifier, rmw_context_t * context, size_t max_conditions);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
