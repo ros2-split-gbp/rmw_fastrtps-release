@@ -83,6 +83,7 @@ __rmw_wait(
   rmw_guard_conditions_t * guard_conditions,
   rmw_services_t * services,
   rmw_clients_t * clients,
+  rmw_events_t * events,
   rmw_wait_set_t * wait_set,
   const rmw_time_t * wait_timeout)
 {
@@ -129,6 +130,15 @@ __rmw_wait(
       custom_service_info->listener_->attachCondition(conditionMutex, conditionVariable);
     }
   }
+
+  // TODO(mm318): implement attachCondition for events when feature becomes available in fastrtps
+  // if (events) {
+  //   for (size_t i = 0; i < events->event_count; ++i) {
+  //     void * data = events->events[i];
+  //     auto custom_event_info = static_cast<CustomEventInfo *>(data);
+  //     custom_event_info->getListener()->attachCondition(conditionMutex, conditionVariable);
+  //   }
+  // }
 
   if (guard_conditions) {
     for (size_t i = 0; i < guard_conditions->guard_condition_count; ++i) {
@@ -200,6 +210,20 @@ __rmw_wait(
       if (!custom_service_info->listener_->hasData()) {
         services->services[i] = 0;
       }
+    }
+  }
+
+  // TODO(mm318): implement detachCondition for events when feature becomes available in fastrtps
+  // For now, set all to NULL because data is not ready
+  if (events) {
+    for (size_t i = 0; i < events->event_count; ++i) {
+      events->events[i] = 0;
+      // void * data = events->events[i];
+      // auto custom_event_info = static_cast<CustomEventInfo *>(data);
+      // custom_event_info->getListener()->detachCondition();
+      // if (!custom_event_info->getListener()->hasEvent()) {
+      //   events->events[i] = 0;
+      // }
     }
   }
 
