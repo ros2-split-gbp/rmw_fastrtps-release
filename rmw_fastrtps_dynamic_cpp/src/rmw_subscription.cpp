@@ -19,17 +19,17 @@
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
-#include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_participant_info.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_subscriber_info.hpp"
 #include "rmw_fastrtps_shared_cpp/namespace_prefix.hpp"
+#include "rmw_fastrtps_shared_cpp/qos.hpp"
+#include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 
 #include "fastrtps/participant/Participant.h"
 #include "fastrtps/subscriber/Subscriber.h"
 
 #include "rmw_fastrtps_dynamic_cpp/identifier.hpp"
 
-#include "qos.hpp"
 #include "type_support_common.hpp"
 
 using Domain = eprosima::fastrtps::Domain;
@@ -38,6 +38,29 @@ using TopicDataType = eprosima::fastrtps::TopicDataType;
 
 extern "C"
 {
+rmw_ret_t
+rmw_init_subscription_allocation(
+  const rosidl_message_type_support_t * type_support,
+  const rosidl_message_bounds_t * message_bounds,
+  rmw_subscription_allocation_t * allocation)
+{
+  // Unused in current implementation.
+  (void) type_support;
+  (void) message_bounds;
+  (void) allocation;
+  RMW_SET_ERROR_MSG("unimplemented");
+  return RMW_RET_ERROR;
+}
+
+rmw_ret_t
+rmw_fini_subscription_allocation(rmw_subscription_allocation_t * allocation)
+{
+  // Unused in current implementation.
+  (void) allocation;
+  RMW_SET_ERROR_MSG("unimplemented");
+  return RMW_RET_ERROR;
+}
+
 rmw_subscription_t *
 rmw_create_subscription(
   const rmw_node_t * node,
@@ -87,6 +110,10 @@ rmw_create_subscription(
     }
   }
 
+  if (!is_valid_qos(*qos_policies)) {
+    return nullptr;
+  }
+
   (void)ignore_local_publications;
   CustomSubscriberInfo * info = nullptr;
   rmw_subscription_t * rmw_subscription = nullptr;
@@ -103,7 +130,7 @@ rmw_create_subscription(
   info->typesupport_identifier_ = type_support->typesupport_identifier;
 
   std::string type_name = _create_type_name(
-    type_support->data, "msg", info->typesupport_identifier_);
+    type_support->data, info->typesupport_identifier_);
   if (!Domain::getRegisteredType(participant, type_name.c_str(),
     reinterpret_cast<TopicDataType **>(&info->type_support_)))
   {
