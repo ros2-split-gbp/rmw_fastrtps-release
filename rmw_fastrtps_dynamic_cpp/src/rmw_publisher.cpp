@@ -18,13 +18,14 @@
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
-#include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_participant_info.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_publisher_info.hpp"
 #include "rmw_fastrtps_shared_cpp/namespace_prefix.hpp"
+#include "rmw_fastrtps_shared_cpp/qos.hpp"
+#include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 
 #include "rmw_fastrtps_dynamic_cpp/identifier.hpp"
-#include "qos.hpp"
+
 #include "type_support_common.hpp"
 
 using Domain = eprosima::fastrtps::Domain;
@@ -33,6 +34,29 @@ using TopicDataType = eprosima::fastrtps::TopicDataType;
 
 extern "C"
 {
+rmw_ret_t
+rmw_init_publisher_allocation(
+  const rosidl_message_type_support_t * type_support,
+  const rosidl_message_bounds_t * message_bounds,
+  rmw_publisher_allocation_t * allocation)
+{
+  // Unused in current implementation.
+  (void) type_support;
+  (void) message_bounds;
+  (void) allocation;
+  RMW_SET_ERROR_MSG("unimplemented");
+  return RMW_RET_ERROR;
+}
+
+rmw_ret_t
+rmw_fini_publisher_allocation(rmw_publisher_allocation_t * allocation)
+{
+  // Unused in current implementation.
+  (void) allocation;
+  RMW_SET_ERROR_MSG("unimplemented");
+  return RMW_RET_ERROR;
+}
+
 rmw_publisher_t *
 rmw_create_publisher(
   const rmw_node_t * node,
@@ -82,6 +106,10 @@ rmw_create_publisher(
     }
   }
 
+  if (!is_valid_qos(*qos_policies)) {
+    return nullptr;
+  }
+
   CustomPublisherInfo * info = nullptr;
   rmw_publisher_t * rmw_publisher = nullptr;
   eprosima::fastrtps::PublisherAttributes publisherParam;
@@ -99,7 +127,7 @@ rmw_create_publisher(
   info->typesupport_identifier_ = type_support->typesupport_identifier;
 
   std::string type_name = _create_type_name(
-    type_support->data, "msg", info->typesupport_identifier_);
+    type_support->data, info->typesupport_identifier_);
   if (!Domain::getRegisteredType(participant, type_name.c_str(),
     reinterpret_cast<TopicDataType **>(&info->type_support_)))
   {
@@ -203,6 +231,13 @@ rmw_publisher_count_matched_subscriptions(
 {
   return rmw_fastrtps_shared_cpp::__rmw_publisher_count_matched_subscriptions(
     publisher, subscription_count);
+}
+
+rmw_ret_t
+rmw_publisher_assert_liveliness(const rmw_publisher_t * publisher)
+{
+  return rmw_fastrtps_shared_cpp::__rmw_publisher_assert_liveliness(
+    eprosima_fastrtps_identifier, publisher);
 }
 
 rmw_ret_t

@@ -49,8 +49,10 @@ _take(
   const rmw_subscription_t * subscription,
   void * ros_message,
   bool * taken,
-  rmw_message_info_t * message_info)
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation)
 {
+  (void) allocation;
   *taken = false;
 
   if (subscription->implementation_identifier != identifier) {
@@ -81,11 +83,36 @@ _take(
 }
 
 rmw_ret_t
+__rmw_take_event(
+  const char * identifier,
+  const rmw_event_t * event_handle,
+  void * event_info,
+  bool * taken)
+{
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    event_handle, "event_handle pointer is null", return RMW_RET_ERROR);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    event_info, "event info output pointer is null", return RMW_RET_ERROR);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(taken, "boolean flag for taken is null", return RMW_RET_ERROR);
+
+  *taken = false;
+
+  if (event_handle->implementation_identifier != identifier) {
+    RMW_SET_ERROR_MSG("event handle not from this implementation");
+    return RMW_RET_ERROR;
+  }
+
+  RMW_SET_ERROR_MSG("take_event is not yet implemented by rmw_fastrtps yet");
+  return RMW_RET_UNSUPPORTED;
+}
+
+rmw_ret_t
 __rmw_take(
   const char * identifier,
   const rmw_subscription_t * subscription,
   void * ros_message,
-  bool * taken)
+  bool * taken,
+  rmw_subscription_allocation_t * allocation)
 {
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription pointer is null", return RMW_RET_ERROR);
@@ -93,7 +120,7 @@ __rmw_take(
     ros_message, "ros_message pointer is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(taken, "boolean flag for taken is null", return RMW_RET_ERROR);
 
-  return _take(identifier, subscription, ros_message, taken, nullptr);
+  return _take(identifier, subscription, ros_message, taken, nullptr, allocation);
 }
 
 rmw_ret_t
@@ -102,7 +129,8 @@ __rmw_take_with_info(
   const rmw_subscription_t * subscription,
   void * ros_message,
   bool * taken,
-  rmw_message_info_t * message_info)
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation)
 {
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription pointer is null", return RMW_RET_ERROR);
@@ -112,7 +140,7 @@ __rmw_take_with_info(
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     message_info, "message info pointer is null", return RMW_RET_ERROR);
 
-  return _take(identifier, subscription, ros_message, taken, message_info);
+  return _take(identifier, subscription, ros_message, taken, message_info, allocation);
 }
 
 rmw_ret_t
@@ -121,8 +149,10 @@ _take_serialized_message(
   const rmw_subscription_t * subscription,
   rmw_serialized_message_t * serialized_message,
   bool * taken,
-  rmw_message_info_t * message_info)
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation)
 {
+  (void) allocation;
   *taken = false;
 
   if (subscription->implementation_identifier != identifier) {
@@ -168,7 +198,8 @@ __rmw_take_serialized_message(
   const char * identifier,
   const rmw_subscription_t * subscription,
   rmw_serialized_message_t * serialized_message,
-  bool * taken)
+  bool * taken,
+  rmw_subscription_allocation_t * allocation)
 {
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription pointer is null", return RMW_RET_ERROR);
@@ -176,7 +207,8 @@ __rmw_take_serialized_message(
     serialized_message, "ros_message pointer is null", return RMW_RET_ERROR);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(taken, "boolean flag for taken is null", return RMW_RET_ERROR);
 
-  return _take_serialized_message(identifier, subscription, serialized_message, taken, nullptr);
+  return _take_serialized_message(identifier, subscription, serialized_message, taken, nullptr,
+           allocation);
 }
 
 rmw_ret_t
@@ -185,7 +217,8 @@ __rmw_take_serialized_message_with_info(
   const rmw_subscription_t * subscription,
   rmw_serialized_message_t * serialized_message,
   bool * taken,
-  rmw_message_info_t * message_info)
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation)
 {
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     subscription, "subscription pointer is null", return RMW_RET_ERROR);
@@ -196,6 +229,6 @@ __rmw_take_serialized_message_with_info(
     message_info, "message info pointer is null", return RMW_RET_ERROR);
 
   return _take_serialized_message(
-    identifier, subscription, serialized_message, taken, message_info);
+    identifier, subscription, serialized_message, taken, message_info, allocation);
 }
 }  // namespace rmw_fastrtps_shared_cpp
