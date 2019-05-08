@@ -35,13 +35,15 @@
 #include "rosidl_typesupport_introspection_cpp/identifier.hpp"
 #include "rosidl_typesupport_introspection_c/identifier.h"
 
-#include "type_support_common.hpp"
-#include "client_service_common.hpp"
-#include "rmw_fastrtps_dynamic_cpp/identifier.hpp"
-#include "qos.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_participant_info.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_service_info.hpp"
 #include "rmw_fastrtps_shared_cpp/namespace_prefix.hpp"
+#include "rmw_fastrtps_shared_cpp/qos.hpp"
+
+#include "rmw_fastrtps_dynamic_cpp/identifier.hpp"
+
+#include "type_support_common.hpp"
+#include "client_service_common.hpp"
 
 using Domain = eprosima::fastrtps::Domain;
 using Participant = eprosima::fastrtps::Participant;
@@ -116,9 +118,9 @@ rmw_create_service(
   untyped_response_members = get_response_ptr(type_support->data,
       info->typesupport_identifier_);
 
-  std::string request_type_name = _create_type_name(untyped_request_members, "srv",
+  std::string request_type_name = _create_type_name(untyped_request_members,
       info->typesupport_identifier_);
-  std::string response_type_name = _create_type_name(untyped_response_members, "srv",
+  std::string response_type_name = _create_type_name(untyped_response_members,
       info->typesupport_identifier_);
 
   if (!Domain::getRegisteredType(participant, request_type_name.c_str(),
