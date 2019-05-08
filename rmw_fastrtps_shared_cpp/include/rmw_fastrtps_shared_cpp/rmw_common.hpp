@@ -20,6 +20,7 @@
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 #include "rmw/types.h"
+#include "rmw/event.h"
 #include "rmw/names_and_types.h"
 
 namespace rmw_fastrtps_shared_cpp
@@ -97,6 +98,12 @@ __rmw_destroy_node(
   rmw_node_t * node);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
+rmw_ret_t
+__rmw_node_assert_liveliness(
+  const char * identifier,
+  const rmw_node_t * node);
+
+RMW_FASTRTPS_SHARED_CPP_PUBLIC
 const rmw_guard_condition_t *
 __rmw_node_get_graph_guard_condition(const rmw_node_t * node);
 
@@ -113,14 +120,22 @@ rmw_ret_t
 __rmw_publish(
   const char * identifier,
   const rmw_publisher_t * publisher,
-  const void * ros_message);
+  const void * ros_message,
+  rmw_publisher_allocation_t * allocation);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
 __rmw_publish_serialized_message(
   const char * identifier,
   const rmw_publisher_t * publisher,
-  const rmw_serialized_message_t * serialized_message);
+  const rmw_serialized_message_t * serialized_message,
+  rmw_publisher_allocation_t * allocation);
+
+RMW_FASTRTPS_SHARED_CPP_PUBLIC
+rmw_ret_t
+__rmw_publisher_assert_liveliness(
+  const char * identifier,
+  const rmw_publisher_t * publisher);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
@@ -249,6 +264,15 @@ __rmw_take(
   const char * identifier,
   const rmw_subscription_t * subscription,
   void * ros_message,
+  bool * taken,
+  rmw_subscription_allocation_t * allocation);
+
+RMW_FASTRTPS_SHARED_CPP_PUBLIC
+rmw_ret_t
+__rmw_take_event(
+  const char * identifier,
+  const rmw_event_t * event_handle,
+  void * event_info,
   bool * taken);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
@@ -258,7 +282,8 @@ __rmw_take_with_info(
   const rmw_subscription_t * subscription,
   void * ros_message,
   bool * taken,
-  rmw_message_info_t * message_info);
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
@@ -266,7 +291,8 @@ __rmw_take_serialized_message(
   const char * identifier,
   const rmw_subscription_t * subscription,
   rmw_serialized_message_t * serialized_message,
-  bool * taken);
+  bool * taken,
+  rmw_subscription_allocation_t * allocation);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
@@ -275,7 +301,8 @@ __rmw_take_serialized_message_with_info(
   const rmw_subscription_t * subscription,
   rmw_serialized_message_t * serialized_message,
   bool * taken,
-  rmw_message_info_t * message_info);
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
@@ -293,6 +320,7 @@ __rmw_wait(
   rmw_guard_conditions_t * guard_conditions,
   rmw_services_t * services,
   rmw_clients_t * clients,
+  rmw_events_t * events,
   rmw_wait_set_t * wait_set,
   const rmw_time_t * wait_timeout);
 
