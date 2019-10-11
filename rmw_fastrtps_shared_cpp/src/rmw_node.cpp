@@ -386,8 +386,10 @@ __rmw_node_assert_liveliness(
     return RMW_RET_ERROR;
   }
 
-  node_info->participant->assert_liveliness();
-  return RMW_RET_OK;
+  // node_info->participant->assert_liveliness();
+  RMW_SET_ERROR_MSG("assert_liveliness() of node is currently not supported");
+
+  return RMW_RET_UNSUPPORTED;
 }
 
 const rmw_guard_condition_t *
