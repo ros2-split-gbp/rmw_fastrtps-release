@@ -62,7 +62,9 @@ rmw_publisher_t *
 rmw_create_publisher(
   const rmw_node_t * node,
   const rosidl_message_type_support_t * type_supports,
-  const char * topic_name, const rmw_qos_profile_t * qos_policies)
+  const char * topic_name,
+  const rmw_qos_profile_t * qos_policies,
+  const rmw_publisher_options_t * publisher_options)
 {
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -80,7 +82,12 @@ rmw_create_publisher(
   }
 
   if (!qos_policies) {
-    RMW_SET_ERROR_MSG("qos_profile is null");
+    RMW_SET_ERROR_MSG("qos_policies is null");
+    return nullptr;
+  }
+
+  if (!publisher_options) {
+    RMW_SET_ERROR_MSG("publisher_options is null");
     return nullptr;
   }
 
@@ -191,6 +198,7 @@ rmw_create_publisher(
     RMW_SET_ERROR_MSG("failed to allocate publisher");
     goto fail;
   }
+  rmw_publisher->can_loan_messages = false;
   rmw_publisher->implementation_identifier = eprosima_fastrtps_identifier;
   rmw_publisher->data = info;
   rmw_publisher->topic_name = reinterpret_cast<char *>(rmw_allocate(strlen(topic_name) + 1));
@@ -201,6 +209,9 @@ rmw_create_publisher(
   }
 
   memcpy(const_cast<char *>(rmw_publisher->topic_name), topic_name, strlen(topic_name) + 1);
+
+  rmw_publisher->options = *publisher_options;
+
   return rmw_publisher;
 
 fail:
@@ -244,6 +255,33 @@ rmw_publisher_get_actual_qos(
 {
   return rmw_fastrtps_shared_cpp::__rmw_publisher_get_actual_qos(
     publisher, qos);
+}
+
+rmw_ret_t
+rmw_borrow_loaned_message(
+  const rmw_publisher_t * publisher,
+  const rosidl_message_type_support_t * type_support,
+  void ** ros_message)
+{
+  (void) publisher;
+  (void) type_support;
+  (void) ros_message;
+
+  RMW_SET_ERROR_MSG("rmw_borrow_loaned_message is not implemented for rmw_fastrtps_dynamic_cpp");
+  return RMW_RET_UNSUPPORTED;
+}
+
+rmw_ret_t
+rmw_return_loaned_message_from_publisher(
+  const rmw_publisher_t * publisher,
+  void * loaned_message)
+{
+  (void) publisher;
+  (void) loaned_message;
+
+  RMW_SET_ERROR_MSG(
+    "rmw_return_loaned_message_from_publisher is not implemented for rmw_fastrtps_dynamic_cpp");
+  return RMW_RET_UNSUPPORTED;
 }
 
 rmw_ret_t
