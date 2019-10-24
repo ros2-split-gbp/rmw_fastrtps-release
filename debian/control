@@ -1,0 +1,12 @@
+Source: ros-eloquent-rmw-fastrtps-shared-cpp
+Section: misc
+Priority: optional
+Maintainer: Dirk Thomas <dthomas@osrfoundation.org>
+Build-Depends: debhelper (>= 9.0.0), ros-eloquent-ament-cmake-ros, ros-eloquent-ament-lint-auto, ros-eloquent-ament-lint-common, ros-eloquent-fastcdr, ros-eloquent-fastrtps, ros-eloquent-fastrtps-cmake-module, ros-eloquent-rcpputils, ros-eloquent-rcutils, ros-eloquent-rmw, ros-eloquent-ros-workspace
+Homepage: 
+Standards-Version: 3.9.2
+
+Package: ros-eloquent-rmw-fastrtps-shared-cpp
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-eloquent-ament-cmake, ros-eloquent-fastcdr, ros-eloquent-fastrtps, ros-eloquent-fastrtps-cmake-module, ros-eloquent-rcpputils, ros-eloquent-rcutils, ros-eloquent-rmw, ros-eloquent-ros-workspace
+Description: Code shared on static and dynamic type support of rmw_fastrtps_cpp.
