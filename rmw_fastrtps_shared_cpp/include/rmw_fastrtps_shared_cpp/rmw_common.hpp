@@ -89,7 +89,8 @@ __rmw_create_node(
   const char * name,
   const char * namespace_,
   size_t domain_id,
-  const rmw_node_security_options_t * security_options);
+  const rmw_node_security_options_t * security_options,
+  bool localhost_only);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
@@ -228,6 +229,16 @@ __rmw_get_service_names_and_types_by_node(
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
+__rmw_get_client_names_and_types_by_node(
+  const char * identifier,
+  const rmw_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * node_name,
+  const char * node_namespace,
+  rmw_names_and_types_t * service_names_and_types);
+
+RMW_FASTRTPS_SHARED_CPP_PUBLIC
+rmw_ret_t
 __rmw_get_subscriber_names_and_types_by_node(
   const char * identifier,
   const rmw_node_t * node,
@@ -257,6 +268,12 @@ rmw_ret_t
 __rmw_subscription_count_matched_publishers(
   const rmw_subscription_t * subscription,
   size_t * publisher_count);
+
+RMW_FASTRTPS_SHARED_CPP_PUBLIC
+rmw_ret_t
+__rmw_subscription_get_actual_qos(
+  const rmw_subscription_t * subscription,
+  rmw_qos_profile_t * qos);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
