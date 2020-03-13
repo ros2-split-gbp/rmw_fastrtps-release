@@ -1,3 +1,29 @@
+## rmw_fastrtps (dashing) - 0.7.7-1
+
+The packages in the `rmw_fastrtps` repository were released into the `dashing` distro by running `/usr/bin/bloom-release -r dashing rmw_fastrtps --override-release-repository-push-url git@github.com:ros2-gbp/rmw_fastrtps-release` on `Fri, 13 Mar 2020 19:45:19 -0000`
+
+These packages were released:
+- `rmw_fastrtps_cpp`
+- `rmw_fastrtps_dynamic_cpp`
+- `rmw_fastrtps_shared_cpp`
+
+Version of package(s) in repository `rmw_fastrtps`:
+
+- upstream repository: https://github.com/ros2/rmw_fastrtps.git
+- release repository: https://github.com/ros2-gbp/rmw_fastrtps-release.git
+- rosdistro version: `0.7.6-1`
+- old version: `0.7.6-1`
+- new version: `0.7.7-1`
+
+Versions of tools used:
+
+- bloom version: `0.9.3`
+- catkin_pkg version: `0.4.14`
+- rosdep version: `0.18.0`
+- rosdistro version: `0.8.0`
+- vcstools version: `0.1.42`
+
+
 ## rmw_fastrtps (eloquent) - 0.8.1-1
 
 The packages in the `rmw_fastrtps` repository were released into the `eloquent` distro by running `/usr/bin/bloom-release --rosdistro eloquent rmw_fastrtps` on `Thu, 24 Oct 2019 02:44:46 -0000`
