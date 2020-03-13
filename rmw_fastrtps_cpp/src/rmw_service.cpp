@@ -116,6 +116,9 @@ rmw_create_service(
   response_members = static_cast<const message_type_support_callbacks_t *>(
     service_members->response_members_->data);
 
+  info->request_type_support_impl_ = request_members;
+  info->response_type_support_impl_ = response_members;
+
   std::string request_type_name = _create_type_name(request_members);
   std::string response_type_name = _create_type_name(response_members);
 
@@ -174,7 +177,7 @@ rmw_create_service(
   info->request_subscriber_ =
     Domain::createSubscriber(participant, subscriberParam, info->listener_);
   if (!info->request_subscriber_) {
-    RMW_SET_ERROR_MSG("create_service() could not create subscriber");
+    RMW_SET_ERROR_MSG("create_client() could not create subscriber");
     goto fail;
   }
 
@@ -186,7 +189,7 @@ rmw_create_service(
   info->response_publisher_ =
     Domain::createPublisher(participant, publisherParam, nullptr);
   if (!info->response_publisher_) {
-    RMW_SET_ERROR_MSG("create_service() could not create publisher");
+    RMW_SET_ERROR_MSG("create_publisher() could not create publisher");
     goto fail;
   }
 

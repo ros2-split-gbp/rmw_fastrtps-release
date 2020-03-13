@@ -41,6 +41,7 @@ typedef struct CustomSubscriberInfo : public CustomEventInfo
   eprosima::fastrtps::Subscriber * subscriber_;
   SubListener * listener_;
   rmw_fastrtps_shared_cpp::TypeSupport * type_support_;
+  const void * type_support_impl_;
   const char * typesupport_identifier_;
 
   RMW_FASTRTPS_SHARED_CPP_PUBLIC
@@ -80,11 +81,7 @@ public:
   {
     // Make sure to call into Fast-RTPS before taking the lock to avoid an
     // ABBA deadlock between internalMutex_ and mutexes inside of Fast-RTPS.
-#if FASTRTPS_VERSION_MAJOR == 1 && FASTRTPS_VERSION_MINOR < 9
     uint64_t unread_count = sub->getUnreadCount();
-#else
-    uint64_t unread_count = sub->get_unread_count();
-#endif
 
     std::lock_guard<std::mutex> lock(internalMutex_);
 
@@ -144,11 +141,7 @@ public:
   {
     // Make sure to call into Fast-RTPS before taking the lock to avoid an
     // ABBA deadlock between internalMutex_ and mutexes inside of Fast-RTPS.
-#if FASTRTPS_VERSION_MAJOR == 1 && FASTRTPS_VERSION_MINOR < 9
     uint64_t unread_count = sub->getUnreadCount();
-#else
-    uint64_t unread_count = sub->get_unread_count();
-#endif
 
     std::lock_guard<std::mutex> lock(internalMutex_);
     ConditionalScopedLock clock(conditionMutex_);

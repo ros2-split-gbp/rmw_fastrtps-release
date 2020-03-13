@@ -27,7 +27,6 @@
 
 #include "fastrtps/config.h"
 #include "fastrtps/Domain.h"
-#include "fastrtps/rtps/common/Locator.h"
 #include "fastrtps/participant/Participant.h"
 #include "fastrtps/attributes/ParticipantAttributes.h"
 #include "fastrtps/publisher/Publisher.h"
@@ -37,7 +36,6 @@
 #include "fastrtps/subscriber/SubscriberListener.h"
 #include "fastrtps/subscriber/SampleInfo.h"
 #include "fastrtps/attributes/SubscriberAttributes.h"
-#include "fastrtps/utils/IPLocator.h"
 
 #include "fastrtps/rtps/RTPSDomain.h"
 
@@ -50,8 +48,6 @@
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 
 using Domain = eprosima::fastrtps::Domain;
-using IPLocator = eprosima::fastrtps::rtps::IPLocator;
-using Locator_t = eprosima::fastrtps::rtps::Locator_t;
 using Participant = eprosima::fastrtps::Participant;
 using ParticipantAttributes = eprosima::fastrtps::ParticipantAttributes;
 using StatefulReader = eprosima::fastrtps::rtps::StatefulReader;
@@ -220,8 +216,7 @@ __rmw_create_node(
   const char * name,
   const char * namespace_,
   size_t domain_id,
-  const rmw_node_security_options_t * security_options,
-  bool localhost_only)
+  const rmw_node_security_options_t * security_options)
 {
   if (!name) {
     RMW_SET_ERROR_MSG("name is null");
@@ -241,16 +236,6 @@ __rmw_create_node(
   // since the participant name is not part of the DDS spec
   participantAttrs.rtps.setName(name);
 
-  if (localhost_only) {
-    Locator_t local_network_interface_locator;
-    static const std::string local_ip_name("127.0.0.1");
-    local_network_interface_locator.kind = 1;
-    local_network_interface_locator.port = 0;
-    IPLocator::setIPv4(local_network_interface_locator, local_ip_name);
-    participantAttrs.rtps.builtin.metatrafficUnicastLocatorList.push_back(
-      local_network_interface_locator);
-    participantAttrs.rtps.builtin.initialPeersList.push_back(local_network_interface_locator);
-  }
   bool leave_middleware_default_qos = false;
   const char * env_var = "RMW_FASTRTPS_USE_QOS_FROM_XML";
   // Check if the configuration from XML has been enabled from
@@ -401,8 +386,10 @@ __rmw_node_assert_liveliness(
     return RMW_RET_ERROR;
   }
 
-  node_info->participant->assert_liveliness();
-  return RMW_RET_OK;
+  // node_info->participant->assert_liveliness();
+  RMW_SET_ERROR_MSG("assert_liveliness() of node is currently not supported");
+
+  return RMW_RET_UNSUPPORTED;
 }
 
 const rmw_guard_condition_t *

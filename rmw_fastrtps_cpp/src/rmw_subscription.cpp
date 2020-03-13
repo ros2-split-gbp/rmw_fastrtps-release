@@ -66,9 +66,7 @@ rmw_subscription_t *
 rmw_create_subscription(
   const rmw_node_t * node,
   const rosidl_message_type_support_t * type_supports,
-  const char * topic_name,
-  const rmw_qos_profile_t * qos_policies,
-  const rmw_subscription_options_t * subscription_options)
+  const char * topic_name, const rmw_qos_profile_t * qos_policies, bool ignore_local_publications)
 {
   if (!node) {
     RMW_SET_ERROR_MSG("node handle is null");
@@ -117,6 +115,7 @@ rmw_create_subscription(
     return nullptr;
   }
 
+  (void)ignore_local_publications;
   CustomSubscriberInfo * info = nullptr;
   rmw_subscription_t * rmw_subscription = nullptr;
   eprosima::fastrtps::SubscriberAttributes subscriberParam;
@@ -131,6 +130,7 @@ rmw_create_subscription(
   }
 
   info->typesupport_identifier_ = type_support->typesupport_identifier;
+  info->type_support_impl_ = type_support->data;
 
   auto callbacks = static_cast<const message_type_support_callbacks_t *>(type_support->data);
   std::string type_name = _create_type_name(callbacks);
@@ -187,9 +187,6 @@ rmw_create_subscription(
   }
 
   memcpy(const_cast<char *>(rmw_subscription->topic_name), topic_name, strlen(topic_name) + 1);
-
-  rmw_subscription->options = *subscription_options;
-  rmw_subscription->can_loan_messages = false;
   return rmw_subscription;
 
 fail:
@@ -218,15 +215,6 @@ rmw_subscription_count_matched_publishers(
 {
   return rmw_fastrtps_shared_cpp::__rmw_subscription_count_matched_publishers(
     subscription, publisher_count);
-}
-
-rmw_ret_t
-rmw_subscription_get_actual_qos(
-  const rmw_subscription_t * subscription,
-  rmw_qos_profile_t * qos)
-{
-  return rmw_fastrtps_shared_cpp::__rmw_subscription_get_actual_qos(
-    subscription, qos);
 }
 
 rmw_ret_t
