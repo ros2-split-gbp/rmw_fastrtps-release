@@ -29,6 +29,7 @@
 #include "rmw_fastrtps_shared_cpp/namespace_prefix.hpp"
 #include "rmw_fastrtps_shared_cpp/qos.hpp"
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
+#include "rmw_fastrtps_shared_cpp/rmw_context_impl.hpp"
 
 #include "rmw_fastrtps_dynamic_cpp/identifier.hpp"
 
@@ -70,13 +71,15 @@ rmw_create_client(
     return nullptr;
   }
 
-  auto impl = static_cast<CustomParticipantInfo *>(node->data);
-  if (!impl) {
-    RMW_SET_ERROR_MSG("node impl is null");
+  auto common_context = static_cast<rmw_dds_common::Context *>(node->context->impl->common);
+  auto participant_info =
+    static_cast<CustomParticipantInfo *>(node->context->impl->participant_info);
+  if (!participant_info) {
+    RMW_SET_ERROR_MSG("participant info is null");
     return nullptr;
   }
 
-  Participant * participant = impl->participant;
+  Participant * participant = participant_info->participant;
   if (!participant) {
     RMW_SET_ERROR_MSG("participant handle is null");
     return nullptr;
@@ -128,16 +131,17 @@ rmw_create_client(
 
   untyped_request_members =
     get_request_ptr(type_support->data, info->typesupport_identifier_);
-  untyped_response_members = get_response_ptr(type_support->data,
-      info->typesupport_identifier_);
+  untyped_response_members = get_response_ptr(
+    type_support->data, info->typesupport_identifier_);
 
   std::string request_type_name = _create_type_name(
     untyped_request_members, info->typesupport_identifier_);
   std::string response_type_name = _create_type_name(
     untyped_response_members, info->typesupport_identifier_);
 
-  if (!Domain::getRegisteredType(participant, request_type_name.c_str(),
-    reinterpret_cast<TopicDataType **>(&info->request_type_support_)))
+  if (!Domain::getRegisteredType(
+      participant, request_type_name.c_str(),
+      reinterpret_cast<TopicDataType **>(&info->request_type_support_)))
   {
     info->request_type_support_ = new (std::nothrow) TypeSupportProxy(request_type_impl);
     if (!info->request_type_support_) {
@@ -147,8 +151,9 @@ rmw_create_client(
     _register_type(participant, info->request_type_support_);
   }
 
-  if (!Domain::getRegisteredType(participant, response_type_name.c_str(),
-    reinterpret_cast<TopicDataType **>(&info->response_type_support_)))
+  if (!Domain::getRegisteredType(
+      participant, response_type_name.c_str(),
+      reinterpret_cast<TopicDataType **>(&info->response_type_support_)))
   {
     info->response_type_support_ = new (std::nothrow) TypeSupportProxy(response_type_impl);
     if (!info->response_type_support_) {
@@ -158,7 +163,7 @@ rmw_create_client(
     _register_type(participant, info->response_type_support_);
   }
 
-  if (!impl->leave_middleware_default_qos) {
+  if (!participant_info->leave_middleware_default_qos) {
     subscriberParam.historyMemoryPolicy =
       eprosima::fastrtps::rtps::PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
   }
@@ -168,7 +173,7 @@ rmw_create_client(
   subscriberParam.topic.topicName = _create_topic_name(
     qos_policies, ros_service_response_prefix, service_name, "Reply");
 
-  if (!impl->leave_middleware_default_qos) {
+  if (!participant_info->leave_middleware_default_qos) {
     publisherParam.qos.m_publishMode.kind = eprosima::fastrtps::ASYNCHRONOUS_PUBLISH_MODE;
     publisherParam.historyMemoryPolicy =
       eprosima::fastrtps::rtps::PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
@@ -234,15 +239,54 @@ rmw_create_client(
   }
   memcpy(const_cast<char *>(rmw_client->service_name), service_name, strlen(service_name) + 1);
 
+  {
+    // Update graph
+    std::lock_guard<std::mutex> guard(common_context->node_update_mutex);
+    rmw_gid_t gid = rmw_fastrtps_shared_cpp::create_rmw_gid(
+      eprosima_fastrtps_identifier, info->request_publisher_->getGuid());
+    common_context->graph_cache.associate_writer(
+      gid,
+      common_context->gid,
+      node->name,
+      node->namespace_);
+    gid = rmw_fastrtps_shared_cpp::create_rmw_gid(
+      eprosima_fastrtps_identifier, info->response_subscriber_->getGuid());
+    rmw_dds_common::msg::ParticipantEntitiesInfo msg =
+      common_context->graph_cache.associate_reader(
+      gid, common_context->gid, node->name, node->namespace_);
+    rmw_ret_t rmw_ret = rmw_fastrtps_shared_cpp::__rmw_publish(
+      eprosima_fastrtps_identifier,
+      common_context->pub,
+      static_cast<void *>(&msg),
+      nullptr);
+    if (RMW_RET_OK != rmw_ret) {
+      goto fail;
+    }
+  }
+
   return rmw_client;
 
 fail:
   if (info != nullptr) {
     if (info->request_publisher_ != nullptr) {
+      rmw_gid_t gid = rmw_fastrtps_shared_cpp::create_rmw_gid(
+        eprosima_fastrtps_identifier, info->request_publisher_->getGuid());
+      common_context->graph_cache.dissociate_writer(
+        gid,
+        common_context->gid,
+        node->name,
+        node->namespace_);
       Domain::removePublisher(info->request_publisher_);
     }
 
     if (info->response_subscriber_ != nullptr) {
+      rmw_gid_t gid = rmw_fastrtps_shared_cpp::create_rmw_gid(
+        eprosima_fastrtps_identifier, info->response_subscriber_->getGuid());
+      common_context->graph_cache.dissociate_reader(
+        gid,
+        common_context->gid,
+        node->name,
+        node->namespace_);
       Domain::removeSubscriber(info->response_subscriber_);
     }
 
@@ -254,7 +298,7 @@ fail:
       delete info->listener_;
     }
 
-    if (impl) {
+    if (participant_info) {
       if (info->request_type_support_ != nullptr) {
         rmw_fastrtps_shared_cpp::_unregister_type(participant, info->request_type_support_);
       }

@@ -37,6 +37,7 @@ find_package(ament_cmake_ros REQUIRED)
 
 find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
+find_package(rmw_dds_common REQUIRED)
 
 find_package(fastrtps_cmake_module REQUIRED)
 find_package(fastcdr REQUIRED CONFIG)
@@ -44,19 +45,26 @@ find_package(fastrtps REQUIRED CONFIG)
 find_package(FastRTPS REQUIRED MODULE)
 
 find_package(rmw REQUIRED)
-include_directories(include)
 
 add_library(rmw_fastrtps_shared_cpp
   src/custom_publisher_info.cpp
   src/custom_subscriber_info.cpp
+  src/create_rmw_gid.cpp
   src/demangle.cpp
+  src/init_rmw_context_impl.cpp
+  src/listener_thread.cpp
   src/namespace_prefix.cpp
+  src/participant.cpp
+  src/publisher.cpp
   src/qos.cpp
   src/rmw_client.cpp
   src/rmw_compare_gids_equal.cpp
   src/rmw_count.cpp
+  src/rmw_event.cpp
   src/rmw_get_gid_for_publisher.cpp
+  src/rmw_get_topic_endpoint_info.cpp
   src/rmw_guard_condition.cpp
+  src/rmw_init.cpp
   src/rmw_logging.cpp
   src/rmw_node.cpp
   src/rmw_node_info_and_types.cpp
@@ -74,9 +82,13 @@ add_library(rmw_fastrtps_shared_cpp
   src/rmw_trigger_guard_condition.cpp
   src/rmw_wait.cpp
   src/rmw_wait_set.cpp
+  src/subscription.cpp
   src/TypeSupport_impl.cpp
 )
-
+target_include_directories(rmw_fastrtps_shared_cpp
+  PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
 target_link_libraries(rmw_fastrtps_shared_cpp
   fastcdr fastrtps
 )
@@ -86,6 +98,7 @@ ament_target_dependencies(rmw_fastrtps_shared_cpp
   "rcpputils"
   "rcutils"
   "rmw"
+  "rmw_dds_common"
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
@@ -96,6 +109,7 @@ PRIVATE "RMW_FASTRTPS_SHARED_CPP_BUILDING_LIBRARY")
 # specific order: dependents before dependencies
 ament_export_include_directories(include)
 ament_export_libraries(rmw_fastrtps_shared_cpp)
+ament_export_targets(rmw_fastrtps_shared_cpp)
 
 ament_export_dependencies(rcpputils)
 ament_export_dependencies(rcutils)
@@ -104,6 +118,7 @@ ament_export_dependencies(rmw)
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
+  add_subdirectory(test)
 endif()
 
 ament_package(
@@ -116,7 +131,7 @@ install(
 )
 
 install(
-  TARGETS rmw_fastrtps_shared_cpp
+  TARGETS rmw_fastrtps_shared_cpp EXPORT rmw_fastrtps_shared_cpp
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin

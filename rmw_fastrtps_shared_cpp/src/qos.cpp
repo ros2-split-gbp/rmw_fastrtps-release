@@ -158,14 +158,38 @@ get_datawriter_qos(
 }
 
 bool
-is_valid_qos(const rmw_qos_profile_t & qos_policies)
+is_valid_qos(const rmw_qos_profile_t & /* qos_policies */)
 {
-  if (qos_policies.liveliness == RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE ||
-    qos_policies.liveliness == RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC ||
-    !is_time_default(qos_policies.liveliness_lease_duration))
-  {
-    RMW_SET_ERROR_MSG("Liveliness QoS is not yet supported for fastrtps.");
-    return false;
-  }
   return true;
 }
+
+template<typename AttributeT>
+void
+dds_attributes_to_rmw_qos(
+  const AttributeT & dds_qos,
+  rmw_qos_profile_t * qos)
+{
+  switch (dds_qos.topic.historyQos.kind) {
+    case eprosima::fastrtps::KEEP_LAST_HISTORY_QOS:
+      qos->history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+      break;
+    case eprosima::fastrtps::KEEP_ALL_HISTORY_QOS:
+      qos->history = RMW_QOS_POLICY_HISTORY_KEEP_ALL;
+      break;
+    default:
+      qos->history = RMW_QOS_POLICY_HISTORY_UNKNOWN;
+      break;
+  }
+  qos->depth = static_cast<size_t>(dds_qos.topic.historyQos.depth);
+  dds_qos_to_rmw_qos(dds_qos.qos, qos);
+}
+
+template
+void dds_attributes_to_rmw_qos<eprosima::fastrtps::PublisherAttributes>(
+  const eprosima::fastrtps::PublisherAttributes & dds_qos,
+  rmw_qos_profile_t * qos);
+
+template
+void dds_attributes_to_rmw_qos<eprosima::fastrtps::SubscriberAttributes>(
+  const eprosima::fastrtps::SubscriberAttributes & dds_qos,
+  rmw_qos_profile_t * qos);
