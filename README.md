@@ -1,3 +1,29 @@
+## rmw_fastrtps (foxy) - 1.0.0-1
+
+The packages in the `rmw_fastrtps` repository were released into the `foxy` distro by running `/usr/bin/bloom-release --rosdistro foxy --track foxy rmw_fastrtps` on `Tue, 12 May 2020 21:39:56 -0000`
+
+These packages were released:
+- `rmw_fastrtps_cpp`
+- `rmw_fastrtps_dynamic_cpp`
+- `rmw_fastrtps_shared_cpp`
+
+Version of package(s) in repository `rmw_fastrtps`:
+
+- upstream repository: https://github.com/ros2/rmw_fastrtps.git
+- release repository: https://github.com/ros2-gbp/rmw_fastrtps-release.git
+- rosdistro version: `0.9.1-1`
+- old version: `0.9.1-1`
+- new version: `1.0.0-1`
+
+Versions of tools used:
+
+- bloom version: `0.9.7`
+- catkin_pkg version: `0.4.20`
+- rosdep version: `0.19.0`
+- rosdistro version: `0.8.1`
+- vcstools version: `0.1.42`
+
+
 ## rmw_fastrtps (foxy) - 0.9.1-1
 
 The packages in the `rmw_fastrtps` repository were released into the `foxy` distro by running `/usr/bin/bloom-release --track foxy --rosdistro foxy rmw_fastrtps` on `Fri, 08 May 2020 15:15:02 -0000`
