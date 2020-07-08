@@ -97,9 +97,6 @@ __rmw_destroy_service(
     if (info->response_publisher_ != nullptr) {
       Domain::removePublisher(info->response_publisher_);
     }
-    if (info->pub_listener_ != nullptr) {
-      delete info->pub_listener_;
-    }
     if (info->listener_ != nullptr) {
       delete info->listener_;
     }

@@ -192,9 +192,8 @@ rmw_create_service(
     RMW_SET_ERROR_MSG("failed to get datawriter qos");
     goto fail;
   }
-  info->pub_listener_ = new ServicePubListener();
   info->response_publisher_ =
-    Domain::createPublisher(participant, publisherParam, info->pub_listener_);
+    Domain::createPublisher(participant, publisherParam, nullptr);
   if (!info->response_publisher_) {
     RMW_SET_ERROR_MSG("create_service() could not create publisher");
     goto fail;
@@ -254,10 +253,6 @@ fail:
         node->name,
         node->namespace_);
       Domain::removePublisher(info->response_publisher_);
-    }
-
-    if (info->pub_listener_) {
-      delete info->pub_listener_;
     }
 
     if (info->request_subscriber_) {
