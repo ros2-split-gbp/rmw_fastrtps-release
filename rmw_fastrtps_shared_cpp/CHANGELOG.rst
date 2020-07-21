@@ -2,25 +2,16 @@
 Changelog for package rmw_fastrtps_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-2.1.0 (2020-07-20)
+1.2.0 (2020-07-21)
 ------------------
-* Add missing thread-safety annotation in ServicePubListener (`#409 <https://github.com/ros2/rmw_fastrtps/issues/409>`_)
-* Ensure compliant node construction/destruction API. (`#408 <https://github.com/ros2/rmw_fastrtps/issues/408>`_)
-* Contributors: Michel Hidalgo
-
-2.0.0 (2020-07-08)
-------------------
-* Update Quality Declarations to QL3. (`#404 <https://github.com/ros2/rmw_fastrtps/issues/404>`_)
-* Contributors: Michel Hidalgo
-
-1.1.0 (2020-06-29)
-------------------
-* Do not use string literals as implementation identifiers in tests. (`#402 <https://github.com/ros2/rmw_fastrtps/issues/402>`_)
-* Ensure compliant init options API implementations. (`#399 <https://github.com/ros2/rmw_fastrtps/issues/399>`_)
-* Finalize context iff shutdown. (`#396 <https://github.com/ros2/rmw_fastrtps/issues/396>`_)
-* Handle RMW_DEFAULT_DOMAIN_ID. (`#394 <https://github.com/ros2/rmw_fastrtps/issues/394>`_)
-* Make service wait for response reader (`#390 <https://github.com/ros2/rmw_fastrtps/issues/390>`_)
+* Add missing thread-safety annotation in ServicePubListener (`#409 <https://github.com/ros2/rmw_fastrtps/issues/409>`_) (`#413 <https://github.com/ros2/rmw_fastrtps/issues/413>`_)
+* Make service wait for response reader (`#390 <https://github.com/ros2/rmw_fastrtps/issues/390>`_) (`#412 <https://github.com/ros2/rmw_fastrtps/issues/412>`_)
 * Contributors: Michel Hidalgo, Miguel Company
+
+1.0.2 (2020-07-07)
+------------------
+* Handle RMW_DEFAULT_DOMAIN_ID (`#394 <https://github.com/ros2/rmw_fastrtps/issues/394>`_) (`#398 <https://github.com/ros2/rmw_fastrtps/issues/398>`_)
+* Contributors: Michel Hidalgo
 
 1.0.1 (2020-06-01)
 ------------------
