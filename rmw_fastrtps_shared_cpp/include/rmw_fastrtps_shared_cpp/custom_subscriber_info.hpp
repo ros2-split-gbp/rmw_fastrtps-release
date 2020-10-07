@@ -38,12 +38,12 @@ struct CustomSubscriberInfo : public CustomEventInfo
 {
   virtual ~CustomSubscriberInfo() = default;
 
-  eprosima::fastrtps::Subscriber * subscriber_{nullptr};
-  SubListener * listener_{nullptr};
-  rmw_fastrtps_shared_cpp::TypeSupport * type_support_{nullptr};
-  const void * type_support_impl_{nullptr};
-  rmw_gid_t subscription_gid_{};
-  const char * typesupport_identifier_{nullptr};
+  eprosima::fastrtps::Subscriber * subscriber_;
+  SubListener * listener_;
+  rmw_fastrtps_shared_cpp::TypeSupport * type_support_;
+  const void * type_support_impl_;
+  rmw_gid_t subscription_gid_;
+  const char * typesupport_identifier_;
 
   RMW_FASTRTPS_SHARED_CPP_PUBLIC
   EventListenerInterface *
@@ -77,13 +77,13 @@ public:
         publishers_.erase(info.remoteEndpointGuid);
       }
     }
-    update_unread_count(sub);
+    data_taken(sub);
   }
 
   void
   onNewDataMessage(eprosima::fastrtps::Subscriber * sub) final
   {
-    update_unread_count(sub);
+    data_taken(sub);
   }
 
   RMW_FASTRTPS_SHARED_CPP_PUBLIC
@@ -131,7 +131,7 @@ public:
   }
 
   void
-  update_unread_count(eprosima::fastrtps::Subscriber * sub)
+  data_taken(eprosima::fastrtps::Subscriber * sub)
   {
     // Make sure to call into Fast-RTPS before taking the lock to avoid an
     // ABBA deadlock between internalMutex_ and mutexes inside of Fast-RTPS.

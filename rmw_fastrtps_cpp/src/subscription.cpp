@@ -16,15 +16,11 @@
 #include <utility>
 
 #include "rcutils/allocator.h"
-#include "rcutils/macros.h"
 #include "rcutils/strdup.h"
 
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
-#include "rmw/validate_full_topic_name.h"
-
-#include "rcpputils/scope_exit.hpp"
 
 #include "rmw_fastrtps_shared_cpp/custom_participant_info.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_subscriber_info.hpp"
@@ -59,32 +55,27 @@ create_subscription(
   bool keyed,
   bool create_subscription_listener)
 {
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(nullptr);
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(participant_info, nullptr);
-  RMW_CHECK_ARGUMENT_FOR_NULL(type_supports, nullptr);
-  RMW_CHECK_ARGUMENT_FOR_NULL(topic_name, nullptr);
-  if (0 == strlen(topic_name)) {
-    RMW_SET_ERROR_MSG("topic_name argument is an empty string");
+  if (!topic_name || strlen(topic_name) == 0) {
+    RMW_SET_ERROR_MSG("subscription topic is null or empty string");
     return nullptr;
   }
-  RMW_CHECK_ARGUMENT_FOR_NULL(qos_policies, nullptr);
-  if (!qos_policies->avoid_ros_namespace_conventions) {
-    int validation_result = RMW_TOPIC_VALID;
-    rmw_ret_t ret = rmw_validate_full_topic_name(topic_name, &validation_result, nullptr);
-    if (RMW_RET_OK != ret) {
-      return nullptr;
-    }
-    if (RMW_TOPIC_VALID != validation_result) {
-      const char * reason = rmw_full_topic_name_validation_result_string(validation_result);
-      RMW_SET_ERROR_MSG_WITH_FORMAT_STRING("invalid topic_name argument: %s", reason);
-      return nullptr;
-    }
+  if (!qos_policies) {
+    RMW_SET_ERROR_MSG("qos_policies is null");
+    return nullptr;
   }
-  RMW_CHECK_ARGUMENT_FOR_NULL(subscription_options, nullptr);
+  if (!subscription_options) {
+    RMW_SET_ERROR_MSG("subscription_options is null");
+    return nullptr;
+  }
+  if (!participant_info) {
+    RMW_SET_ERROR_MSG("participant_info is null");
+    return nullptr;
+  }
   Participant * participant = participant_info->participant;
-  RMW_CHECK_FOR_NULL_WITH_MSG(participant, "participant handle is null", return nullptr);
-
+  if (!participant) {
+    RMW_SET_ERROR_MSG("participant handle is null");
+    return nullptr;
+  }
   const rosidl_message_type_support_t * type_support = get_message_typesupport_handle(
     type_supports, RMW_FASTRTPS_CPP_TYPESUPPORT_C);
   if (!type_support) {
@@ -98,24 +89,17 @@ create_subscription(
   if (!is_valid_qos(*qos_policies)) {
     return nullptr;
   }
+  CustomSubscriberInfo * info = nullptr;
+  rmw_subscription_t * rmw_subscription = nullptr;
+  eprosima::fastrtps::SubscriberAttributes subscriberParam;
 
   // Load default XML profile.
-  eprosima::fastrtps::SubscriberAttributes subscriberParam;
   Domain::getDefaultSubscriberAttributes(subscriberParam);
-
-  CustomSubscriberInfo * info = new (std::nothrow) CustomSubscriberInfo();
+  info = new (std::nothrow) CustomSubscriberInfo();
   if (!info) {
     RMW_SET_ERROR_MSG("failed to allocate CustomSubscriberInfo");
     return nullptr;
   }
-  auto cleanup_info = rcpputils::make_scope_exit(
-    [info, participant]() {
-      if (info->type_support_) {
-        _unregister_type(participant, info->type_support_);
-      }
-      delete info->listener_;
-      delete info;
-    });
   info->typesupport_identifier_ = type_support->typesupport_identifier;
   info->type_support_impl_ = type_support->data;
 
@@ -129,7 +113,7 @@ create_subscription(
     info->type_support_ = new (std::nothrow) MessageTypeSupport_cpp(callbacks);
     if (!info->type_support_) {
       RMW_SET_ERROR_MSG("failed to allocate MessageTypeSupport_cpp");
-      return nullptr;
+      goto fail;
     }
     _register_type(participant, info->type_support_);
   }
@@ -144,59 +128,47 @@ create_subscription(
   subscriberParam.topic.topicName = _create_topic_name(qos_policies, ros_topic_prefix, topic_name);
 
   if (!get_datareader_qos(*qos_policies, subscriberParam)) {
-    return nullptr;
+    RMW_SET_ERROR_MSG("failed to get datareader qos");
+    goto fail;
   }
-
+  info->listener_ = nullptr;
   if (create_subscription_listener) {
     info->listener_ = new (std::nothrow) SubListener(info);
     if (!info->listener_) {
       RMW_SET_ERROR_MSG("create_subscriber() could not create subscriber listener");
-      return nullptr;
+      goto fail;
     }
   }
-
   info->subscriber_ = Domain::createSubscriber(participant, subscriberParam, info->listener_);
   if (!info->subscriber_) {
     RMW_SET_ERROR_MSG("create_subscriber() could not create subscriber");
-    return nullptr;
+    goto fail;
   }
-  auto cleanup_subscription = rcpputils::make_scope_exit(
-    [info]() {
-      if (!Domain::removeSubscriber(info->subscriber_)) {
-        RMW_SAFE_FWRITE_TO_STDERR(
-          "Failed to remove subscriber after '"
-          RCUTILS_STRINGIFY(__function__) "' failed.\n");
-      }
-    });
-
   info->subscription_gid_ = rmw_fastrtps_shared_cpp::create_rmw_gid(
     eprosima_fastrtps_identifier, info->subscriber_->getGuid());
-
-  rmw_subscription_t * rmw_subscription = rmw_subscription_allocate();
+  rmw_subscription = rmw_subscription_allocate();
   if (!rmw_subscription) {
     RMW_SET_ERROR_MSG("failed to allocate subscription");
-    return nullptr;
+    goto fail;
   }
-  auto cleanup_rmw_subscription = rcpputils::make_scope_exit(
-    [rmw_subscription]() {
-      rmw_free(const_cast<char *>(rmw_subscription->topic_name));
-      rmw_subscription_free(rmw_subscription);
-    });
-
   rmw_subscription->implementation_identifier = eprosima_fastrtps_identifier;
   rmw_subscription->data = info;
-
   rmw_subscription->topic_name = rcutils_strdup(topic_name, rcutils_get_default_allocator());
   if (!rmw_subscription->topic_name) {
     RMW_SET_ERROR_MSG("failed to allocate memory for subscription topic name");
-    return nullptr;
+    goto fail;
   }
-  rmw_subscription->options = *subscription_options;
-  rmw_subscription->can_loan_messages = false;
 
-  cleanup_rmw_subscription.cancel();
-  cleanup_subscription.cancel();
-  cleanup_info.cancel();
+  rmw_subscription->options = *subscription_options;
   return rmw_subscription;
+
+fail:
+  if (info != nullptr) {
+    delete info->type_support_;
+    delete info->listener_;
+    delete info;
+  }
+  rmw_subscription_free(rmw_subscription);
+  return nullptr;
 }
 }  // namespace rmw_fastrtps_cpp

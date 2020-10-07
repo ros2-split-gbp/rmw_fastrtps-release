@@ -60,10 +60,10 @@ _take(
   (void) allocation;
   *taken = false;
 
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    subscription handle,
-    subscription->implementation_identifier, identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION)
+  if (subscription->implementation_identifier != identifier) {
+    RMW_SET_ERROR_MSG("publisher handle not from this implementation");
+    return RMW_RET_ERROR;
+  }
 
   CustomSubscriberInfo * info = static_cast<CustomSubscriberInfo *>(subscription->data);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "custom subscriber info is null", return RMW_RET_ERROR);
@@ -75,7 +75,7 @@ _take(
   data.data = ros_message;
   data.impl = info->type_support_impl_;
   if (info->subscriber_->takeNextData(&data, &sinfo)) {
-    info->listener_->update_unread_count(info->subscriber_);
+    info->listener_->data_taken(info->subscriber_);
 
     if (eprosima::fastrtps::rtps::ALIVE == sinfo.sampleKind) {
       if (message_info) {
@@ -102,10 +102,10 @@ _take_sequence(
   bool taken_flag = false;
   rmw_ret_t ret = RMW_RET_OK;
 
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    subscription handle,
-    subscription->implementation_identifier, identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+  if (subscription->implementation_identifier != identifier) {
+    RMW_SET_ERROR_MSG("publisher handle not from this implementation");
+    return RMW_RET_ERROR;
+  }
 
   CustomSubscriberInfo * info = static_cast<CustomSubscriberInfo *>(subscription->data);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "custom subscriber info is null", return RMW_RET_ERROR);
@@ -175,14 +175,11 @@ __rmw_take(
   bool * taken,
   rmw_subscription_allocation_t * allocation)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    subscription, RMW_RET_INVALID_ARGUMENT);
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    ros_message, RMW_RET_INVALID_ARGUMENT);
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    taken, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    subscription, "subscription pointer is null", return RMW_RET_ERROR);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    ros_message, "ros_message pointer is null", return RMW_RET_ERROR);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(taken, "boolean flag for taken is null", return RMW_RET_ERROR);
 
   return _take(identifier, subscription, ros_message, taken, nullptr, allocation);
 }
@@ -197,31 +194,24 @@ __rmw_take_sequence(
   size_t * taken,
   rmw_subscription_allocation_t * allocation)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    subscription, RMW_RET_INVALID_ARGUMENT);
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    message_sequence, RMW_RET_INVALID_ARGUMENT);
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    message_info_sequence, RMW_RET_INVALID_ARGUMENT);
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    taken, RMW_RET_INVALID_ARGUMENT);
-
-  if (0u == count) {
-    RMW_SET_ERROR_MSG("count cannot be 0");
-    return RMW_RET_INVALID_ARGUMENT;
-  }
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    subscription, "subscription pointer is null", return RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    message_sequence, "message_sequence pointer is null", return RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    message_info_sequence, "message_info_sequence pointer is null",
+    return RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    taken, "size_t flag for count is null", return RMW_RET_INVALID_ARGUMENT);
 
   if (count > message_sequence->capacity) {
     RMW_SET_ERROR_MSG("Insufficient capacity in message_sequence");
-    return RMW_RET_INVALID_ARGUMENT;
+    return RMW_RET_ERROR;
   }
 
   if (count > message_info_sequence->capacity) {
     RMW_SET_ERROR_MSG("Insufficient capacity in message_info_sequence");
-    return RMW_RET_INVALID_ARGUMENT;
+    return RMW_RET_ERROR;
   }
 
   return _take_sequence(
@@ -238,17 +228,13 @@ __rmw_take_with_info(
   rmw_message_info_t * message_info,
   rmw_subscription_allocation_t * allocation)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    message_info, RMW_RET_INVALID_ARGUMENT);
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    taken, RMW_RET_INVALID_ARGUMENT);
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    ros_message, RMW_RET_INVALID_ARGUMENT);
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    subscription, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    subscription, "subscription pointer is null", return RMW_RET_ERROR);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    ros_message, "ros_message pointer is null", return RMW_RET_ERROR);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(taken, "boolean flag for taken is null", return RMW_RET_ERROR);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    message_info, "message info pointer is null", return RMW_RET_ERROR);
 
   return _take(identifier, subscription, ros_message, taken, message_info, allocation);
 }
@@ -265,10 +251,10 @@ _take_serialized_message(
   (void) allocation;
   *taken = false;
 
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    subscription handle,
-    subscription->implementation_identifier, identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION)
+  if (subscription->implementation_identifier != identifier) {
+    RMW_SET_ERROR_MSG("publisher handle not from this implementation");
+    return RMW_RET_ERROR;
+  }
 
   CustomSubscriberInfo * info = static_cast<CustomSubscriberInfo *>(subscription->data);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "custom subscriber info is null", return RMW_RET_ERROR);
@@ -281,7 +267,7 @@ _take_serialized_message(
   data.data = &buffer;
   data.impl = nullptr;    // not used when is_cdr_buffer is true
   if (info->subscriber_->takeNextData(&data, &sinfo)) {
-    info->listener_->update_unread_count(info->subscriber_);
+    info->listener_->data_taken(info->subscriber_);
 
     if (eprosima::fastrtps::rtps::ALIVE == sinfo.sampleKind) {
       auto buffer_size = static_cast<size_t>(buffer.getBufferSize());
@@ -312,14 +298,11 @@ __rmw_take_serialized_message(
   bool * taken,
   rmw_subscription_allocation_t * allocation)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    subscription, RMW_RET_INVALID_ARGUMENT);
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    serialized_message, RMW_RET_INVALID_ARGUMENT);
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    taken, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    subscription, "subscription pointer is null", return RMW_RET_ERROR);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    serialized_message, "ros_message pointer is null", return RMW_RET_ERROR);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(taken, "boolean flag for taken is null", return RMW_RET_ERROR);
 
   return _take_serialized_message(
     identifier, subscription, serialized_message, taken, nullptr, allocation);
@@ -334,17 +317,13 @@ __rmw_take_serialized_message_with_info(
   rmw_message_info_t * message_info,
   rmw_subscription_allocation_t * allocation)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    subscription, RMW_RET_INVALID_ARGUMENT);
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    serialized_message, RMW_RET_INVALID_ARGUMENT);
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    taken, RMW_RET_INVALID_ARGUMENT);
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(
-    message_info, RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    subscription, "subscription pointer is null", return RMW_RET_ERROR);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    serialized_message, "ros_message pointer is null", return RMW_RET_ERROR);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(taken, "boolean flag for taken is null", return RMW_RET_ERROR);
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    message_info, "message info pointer is null", return RMW_RET_ERROR);
 
   return _take_serialized_message(
     identifier, subscription, serialized_message, taken, message_info, allocation);

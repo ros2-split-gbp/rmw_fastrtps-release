@@ -2,84 +2,16 @@
 Changelog for package rmw_fastrtps_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-3.1.4 (2020-10-02)
-------------------
-* Perform fault injection in all creation/destruction APIs. (`#453 <https://github.com/ros2/rmw_fastrtps/issues/453>`_)
-* Ensure rmw_destroy_node() completes despite run-time errors. (`#458 <https://github.com/ros2/rmw_fastrtps/issues/458>`_)
-* Update rmw_fastrtps_cpp and rmw_fastrtps_shared_cpp QDs to QL2. (`#456 <https://github.com/ros2/rmw_fastrtps/issues/456>`_)
-* Contributors: Michel Hidalgo
-
-3.1.3 (2020-09-29)
-------------------
-* Return RMW_RET_UNSUPPORTED in rmw_get_serialized_message_size (`#452 <https://github.com/ros2/rmw_fastrtps/issues/452>`_)
-* Contributors: Alejandro Hernández Cordero
-
-3.1.2 (2020-09-25)
-------------------
-* Updated publisher/subscription allocation and wait set API return codes (`#443 <https://github.com/ros2/rmw_fastrtps/issues/443>`_)
-* Added rmw_logging tests (`#442 <https://github.com/ros2/rmw_fastrtps/issues/442>`_)
-* Contributors: Alejandro Hernández Cordero
-
-3.1.1 (2020-09-24)
-------------------
-* Make service/client construction/destruction implementation compliant (`#445 <https://github.com/ros2/rmw_fastrtps/issues/445>`_)
-* Make sure type can be unregistered successfully (`#437 <https://github.com/ros2/rmw_fastrtps/issues/437>`_)
-* Contributors: Barry Xu, Michel Hidalgo
-
-3.1.0 (2020-09-23)
-------------------
-* Add tests for native entity getters. (`#439 <https://github.com/ros2/rmw_fastrtps/issues/439>`_)
-* Avoid deadlock if graph update fails. (`#438 <https://github.com/ros2/rmw_fastrtps/issues/438>`_)
-* Contributors: Michel Hidalgo
-
-3.0.0 (2020-09-18)
-------------------
-* Call Domain::removePublisher while failure occurs in create_publisher (`#434 <https://github.com/ros2/rmw_fastrtps/issues/434>`_)
-* Contributors: Barry Xu
-
-2.6.0 (2020-08-28)
-------------------
-* Ensure compliant matched pub/sub count API. (`#424 <https://github.com/ros2/rmw_fastrtps/issues/424>`_)
-* Ensure compliant publisher QoS queries. (`#425 <https://github.com/ros2/rmw_fastrtps/issues/425>`_)
-* Contributors: Michel Hidalgo
-
-2.5.0 (2020-08-07)
+1.2.1 (2020-10-07)
 ------------------
 
-2.4.0 (2020-08-06)
+1.2.0 (2020-07-21)
 ------------------
-* Ensure compliant subscription API. (`#419 <https://github.com/ros2/rmw_fastrtps/issues/419>`_)
-* Contributors: Michel Hidalgo
+* Make service wait for response reader (`#390 <https://github.com/ros2/rmw_fastrtps/issues/390>`_) (`#412 <https://github.com/ros2/rmw_fastrtps/issues/412>`_)
+* Contributors: Miguel Company
 
-2.3.0 (2020-07-30)
+1.0.2 (2020-07-07)
 ------------------
-* Ensure compliant publisher API. (`#414 <https://github.com/ros2/rmw_fastrtps/issues/414>`_)
-* Contributors: Michel Hidalgo
-
-2.2.0 (2020-07-22)
-------------------
-* Set context actual domain id (`#410 <https://github.com/ros2/rmw_fastrtps/issues/410>`_)
-* Contributors: Ivan Santiago Paunovic
-
-2.1.0 (2020-07-20)
-------------------
-* Ensure compliant node construction/destruction API. (`#408 <https://github.com/ros2/rmw_fastrtps/issues/408>`_)
-* Contributors: Michel Hidalgo
-
-2.0.0 (2020-07-08)
-------------------
-* Remove domain_id and localhost_only from node API (`#407 <https://github.com/ros2/rmw_fastrtps/issues/407>`_)
-* Amend rmw_init() implementation: require enclave. (`#406 <https://github.com/ros2/rmw_fastrtps/issues/406>`_)
-* Update Quality Declarations to QL3. (`#404 <https://github.com/ros2/rmw_fastrtps/issues/404>`_)
-* Contributors: Ivan Santiago Paunovic, Michel Hidalgo
-
-1.1.0 (2020-06-29)
-------------------
-* Ensure compliant init/shutdown API implementation. (`#401 <https://github.com/ros2/rmw_fastrtps/issues/401>`_)
-* Update Quality Declaration to QL3. (`#403 <https://github.com/ros2/rmw_fastrtps/issues/403>`_)
-* Finalize context iff shutdown. (`#396 <https://github.com/ros2/rmw_fastrtps/issues/396>`_)
-* Make service wait for response reader (`#390 <https://github.com/ros2/rmw_fastrtps/issues/390>`_)
-* Contributors: Michel Hidalgo, Miguel Company
 
 1.0.1 (2020-06-01)
 ------------------

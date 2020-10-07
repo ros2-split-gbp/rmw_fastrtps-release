@@ -7,11 +7,6 @@ if(TARGET test_dds_attributes_to_rmw_qos)
     target_link_libraries(test_dds_attributes_to_rmw_qos ${PROJECT_NAME})
 endif()
 
-ament_add_gtest(test_rmw_qos_to_dds_attributes test_rmw_qos_to_dds_attributes.cpp)
-if(TARGET test_rmw_qos_to_dds_attributes)
-  target_link_libraries(test_rmw_qos_to_dds_attributes ${PROJECT_NAME})
-endif()
-
 ament_add_gmock(test_security_logging test_security_logging.cpp)
 if(TARGET test_security_logging)
     ament_target_dependencies(test_security_logging)
@@ -33,11 +28,4 @@ ament_add_gtest(test_names test_names.cpp)
 if(TARGET test_names)
   ament_target_dependencies(test_names rmw)
   target_link_libraries(test_names ${PROJECT_NAME})
-endif()
-
-ament_add_gtest(test_logging test_logging.cpp)
-if(TARGET test_logging)
-  ament_target_dependencies(test_logging
-    osrf_testing_tools_cpp rcutils rmw)
-  target_link_libraries(test_logging rmw_fastrtps_shared_cpp)
 endif()

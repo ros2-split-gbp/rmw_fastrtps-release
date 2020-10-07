@@ -28,7 +28,6 @@
 
 #include "rmw_fastrtps_shared_cpp/init_rmw_context_impl.hpp"
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
-#include "rmw_fastrtps_shared_cpp/rmw_context_impl.hpp"
 
 #include "rmw_fastrtps_dynamic_cpp/identifier.hpp"
 #include "rmw_fastrtps_dynamic_cpp/init_rmw_context_impl.hpp"
@@ -39,23 +38,19 @@ rmw_node_t *
 rmw_create_node(
   rmw_context_t * context,
   const char * name,
-  const char * namespace_)
+  const char * namespace_,
+  size_t domain_id,
+  bool localhost_only)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(context, nullptr);
+  (void)domain_id;
+  (void)localhost_only;
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, NULL);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     init context,
     context->implementation_identifier,
     eprosima_fastrtps_identifier,
     // TODO(wjwwood): replace this with RMW_RET_INCORRECT_RMW_IMPLEMENTATION when refactored
-    return nullptr);
-  RMW_CHECK_FOR_NULL_WITH_MSG(
-    context->impl,
-    "expected initialized context",
-    return nullptr);
-  if (context->impl->is_shutdown) {
-    RCUTILS_SET_ERROR_MSG("context has been shutdown");
-    return nullptr;
-  }
+    return NULL);
 
   if (RMW_RET_OK != rmw_fastrtps_dynamic_cpp::increment_context_impl_ref_count(context)) {
     return nullptr;
@@ -77,41 +72,13 @@ rmw_create_node(
 rmw_ret_t
 rmw_destroy_node(rmw_node_t * node)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    node,
-    node->implementation_identifier,
-    eprosima_fastrtps_identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
   rmw_context_t * context = node->context;
-
-  rmw_ret_t ret = RMW_RET_OK;
-  rmw_error_state_t error_state;
-  rmw_ret_t inner_ret = rmw_fastrtps_shared_cpp::__rmw_destroy_node(
+  rmw_ret_t ret = rmw_fastrtps_shared_cpp::__rmw_destroy_node(
     eprosima_fastrtps_identifier, node);
   if (RMW_RET_OK != ret) {
-    error_state = *rmw_get_error_state();
-    ret = inner_ret;
-    rmw_reset_error();
+    return ret;
   }
-
-  inner_ret = rmw_fastrtps_shared_cpp::decrement_context_impl_ref_count(context);
-  if (RMW_RET_OK != inner_ret) {
-    if (RMW_RET_OK != ret) {
-      RMW_SAFE_FWRITE_TO_STDERR(rmw_get_error_string().str);
-      RMW_SAFE_FWRITE_TO_STDERR(" during '" RCUTILS_STRINGIFY(__function__) "'\n");
-    } else {
-      error_state = *rmw_get_error_state();
-      ret = inner_ret;
-    }
-    rmw_reset_error();
-  }
-
-  if (RMW_RET_OK != ret) {
-    rmw_set_error_state(error_state.message, error_state.file, error_state.line_number);
-  }
-
-  return ret;
+  return rmw_fastrtps_shared_cpp::decrement_context_impl_ref_count(context);
 }
 
 const rmw_guard_condition_t *

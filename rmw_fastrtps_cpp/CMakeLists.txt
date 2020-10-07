@@ -31,7 +31,6 @@ endif()
 
 find_package(ament_cmake_ros REQUIRED)
 
-find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw_dds_common REQUIRED)
 find_package(rmw_fastrtps_shared_cpp REQUIRED)
@@ -94,7 +93,6 @@ target_link_libraries(rmw_fastrtps_cpp
 
 # specific order: dependents before dependencies
 ament_target_dependencies(rmw_fastrtps_cpp
-  "rcpputils"
   "rcutils"
   "rosidl_typesupport_fastrtps_c"
   "rosidl_typesupport_fastrtps_cpp"
@@ -134,21 +132,6 @@ register_rmw_implementation(
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
-
-  find_package(ament_cmake_gtest REQUIRED)
-  find_package(osrf_testing_tools_cpp REQUIRED)
-  find_package(test_msgs REQUIRED)
-
-  ament_add_gtest(test_get_native_entities
-    test/test_get_native_entities.cpp)
-  ament_target_dependencies(test_get_native_entities
-    osrf_testing_tools_cpp rcutils rmw test_msgs
-  )
-  target_link_libraries(test_get_native_entities rmw_fastrtps_cpp)
-
-  ament_add_gtest(test_logging test/test_logging.cpp)
-  ament_target_dependencies(test_logging rmw)
-  target_link_libraries(test_logging rmw_fastrtps_cpp)
 endif()
 
 ament_package(

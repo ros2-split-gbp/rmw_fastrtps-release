@@ -2,9 +2,9 @@ This document is a declaration of software quality for the `rmw_fastrtps_shared_
 
 # `rmw_fastrtps_shared_cpp` Quality Declaration
 
-The package `rmw_fastrtps_shared_cpp` claims to be in the **Quality Level 2** category.
+The package `rmw_fastrtps_shared_cpp` claims to be in the **Quality Level 4** category.
 
-Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Requirements for Quality Level 2 in REP-2004](https://www.ros.org/reps/rep-2004.html).
+Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Requirements for Quality Level 4 in REP-2004](https://www.ros.org/reps/rep-2004.html).
 
 ## Version Policy [1]
 
@@ -72,7 +72,7 @@ The license for `rmw_fastrtps_shared_cpp` is Apache 2.0, and a summary is in eac
 
 There is an automated test which runs a linter that ensures each file has a license statement.
 
-Most recent test results can be found [here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rmw_fastrtps_shared_cpp/copyright/)
+Most recent test results can be found [here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/1525/testReport/rmw_fastrtps_shared_cpp/copyright/)
 
 ### Copyright Statements [3.iv]
 
@@ -80,47 +80,22 @@ The copyright holders each provide a statement of copyright in each source code 
 
 There is an automated test which runs a linter that ensures each file has at least one copyright statement.
 
-The results of the test can be found [here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rmw_fastrtps_shared_cpp/copyright/).
+The results of the test can be found [here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/1525/testReport/rmw_fastrtps_shared_cpp/copyright/).
 
 ## Testing [4]
 
 ### Feature Testing [4.i]
 
-All `rmw_fastrtps_shared_cpp` public features support ROS middleware feature implementations in `rmw_fastrtps_cpp` and `rmw_fastrtps_dynamic_cpp`.
-
-Unit, integration, and system tests for ROS middlewares higher up in the stack, such as those found in [`test_rmw_implementation`](https://github.com/ros2/rmw_implementation/tree/master/test_rmw_implementation), [`test_rclcpp`](https://github.com/ros2/system_tests/tree/master/test_rclcpp), and [`test_communication`](https://github.com/ros2/system_tests/tree/master/test_communication) packages, provide coverage.
+Many of the features have testing in `rmw_fastrtps_shared_cpp`. Since `rmw_fastrtps_shared_cpp` supports `rmw_fastrtps_cpp` and `rmw_fastrtps_dynamic_cpp`, integration and system tests for ROS middlewares up the stack, such as those found in [`test_rclcpp`](https://github.com/ros2/system_tests/tree/master/test_rclcpp) and [`test_communication`](https://github.com/ros2/system_tests/tree/master/test_communication) packages, provide coverage.
 
 ### Public API Testing [4.ii]
 
-All `rmw_fastrtps_shared_cpp` public API supports API implementations in  in `rmw_fastrtps_cpp` and `rmw_fastrtps_dynamic_cpp`. 
-
-Unit tests for many parts of this API provide coverage, and they are located in the [`test`](https://github.com/ros2/rmw_fastrtps/tree/master/rmw_fastrtps_shared_cpp/test) directory.
-New additions or changes to this API require tests before being added.
-
-Unit, integration, and system tests for `rmw_fastrtps_cpp` and `rmw_fastrtps_dynamic_cpp` higher up in the stack, such as those found in [`test_rmw_implementation`](https://github.com/ros2/rmw_implementation/tree/master/test_rmw_implementation), [`test_rclcpp`](https://github.com/ros2/system_tests/tree/master/test_rclcpp), and [`test_communication`](https://github.com/ros2/system_tests/tree/master/test_communication) packages, further extend coverage.
+Many parts of the public API have testing in `rmw_fastrtps_shared_cpp`.
+The latest nightly test results can be seen [here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rmw_fastrtps_shared_cpp/).
 
 ### Coverage [4.iii]
 
-`rmw_fastrtps_shared_cpp` follows the recommendations for ROS Core packages in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#coverage), and opts to use branch coverage instead of line coverage.
-
-This includes:
-
-- tracking and reporting line coverage statistics
-- achieving and maintaining a reasonable branch line coverage (90-100%)
-- no lines are manually skipped in coverage calculations
-
-Changes are required to make a best effort to keep or increase coverage before being accepted, but decreases are allowed if properly justified and accepted by reviewers.
-
-Current coverage statistics can be viewed 
-[here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/install_rmw_fastrtps_shared_cpp_include_rmw_fastrtps_shared_cpp/), 
-[here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_fastrtps_rmw_fastrtps_shared_cpp_include_rmw_fastrtps_shared_cpp/), 
-[here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_fastrtps_rmw_fastrtps_shared_cpp_src/), and 
-[here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_fastrtps_rmw_fastrtps_shared_cpp_src_types/).
-
-This package claims to meet the coverage requirements for the current quality level, even though it doesn't have 95% line coverage.
-The justification is that the only uncovered lines have to do with system resource exhaustion and Fast-DDS internal failure.
-
-A summary of how these statistics are calculated can be found in the [ROS 2 On-boarding guide](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
+`rmw_fastrtps_shared_cpp` does not currently track test coverage.
 
 ### Performance [4.iv]
 
@@ -162,52 +137,6 @@ Currently nightly results can be seen here:
 * [mac_osx_release](https://ci.ros2.org/view/nightly/job/nightly_osx_release/lastBuild/testReport/rmw_fastrtps_shared_cpp/)
 * [windows_release](https://ci.ros2.org/view/nightly/job/nightly_win_rel/lastBuild/testReport/rmw_fastrtps_shared_cpp/)
 
-## Security [7]
-
-### Vulnerability Disclosure Policy [7.i]
+## Vulnerability Disclosure Policy [7.i]
 
 This package conforms to the Vulnerability Disclosure Policy in [REP-2006](https://www.ros.org/reps/rep-2006.html).
-
-# Current status Summary
-
-The chart below compares the requirements in the REP-2004 with the current state of the `rmw_fastrtps_shared_cpp` package.
-
-|Number| Requirement| Current state |
-|--|--|--|
-|1| **Version policy** |---|
-|1.i|Version Policy available | ✓ |
-|1.ii|Stable version |✓ |
-|1.iii|Declared public API|✓|
-|1.iv|API stability policy|✓|
-|1.v|ABI stability policy|✓|
-|1.vi_|API/ABI stable within ros distribution|✓|
-|2| **Change control process** |---|
-|2.i| All changes occur on change request | ✓|
-|2.ii| Contributor origin (DCO, CLA, etc) | ✓|
-|2.iii| Peer review policy | ✓ |
-|2.iv| CI policy for change requests | ✓ |
-|2.v| Documentation policy for change requests | ✓ |
-|3| **Documentation** | --- |
-|3.i| Per feature documentation | ✓ |
-|3.ii| Per public API item documentation | * |
-|3.iii| Declared License(s) | ✓ |
-|3.iv| Copyright in source files| ✓ |
-|3.v.a| Quality declaration linked to README | ✓ |
-|3.v.b| Centralized declaration available for peer review |✓|
-|4| **Testing** | --- |
-|4.i| Feature items tests | ✓ |
-|4.ii| Public API tests | ✓ |
-|4.iii.a| Using coverage | ✓ |
-|4.iii.a| Coverage policy | ✓ |
-|4.iv.a| Performance tests (if applicable) | ☓ |
-|4.iv.b| Performance tests policy| ✓ |
-|4.v.a| Code style enforcement (linters)| ✓ |
-|4.v.b| Use of static analysis tools | ✓ |
-|5| **Dependencies** | --- |
-|5.i| Must not have ROS lower level dependencies | ✓ |
-|5.ii| Optional ROS lower level dependencies| ✓ |
-|5.iii| Justifies quality use of non-ROS dependencies |✓|
-|6| **Platform support** | --- |
-|6.i| Support targets Tier1 ROS platforms| ✓ |
-|7| **Security** | --- |
-|7.i| Vulnerability Disclosure Policy | ✓ |

@@ -144,8 +144,6 @@ rmw_fastrtps_shared_cpp::create_participant(
   const char * enclave,
   rmw_dds_common::Context * common_context)
 {
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(nullptr);
-
   if (!security_options) {
     RMW_SET_ERROR_MSG("security_options is null");
     return nullptr;
@@ -168,9 +166,11 @@ rmw_fastrtps_shared_cpp::create_participant(
 
   // No custom handling of RMW_DEFAULT_DOMAIN_ID. Simply use a reasonable domain id.
 #if FASTRTPS_VERSION_MAJOR < 2
-  participantAttrs.rtps.builtin.domainId = static_cast<uint32_t>(domain_id);
+  participantAttrs.rtps.builtin.domainId =
+    static_cast<uint32_t>(domain_id != RMW_DEFAULT_DOMAIN_ID ? domain_id : 0u);
 #else
-  participantAttrs.domainId = static_cast<uint32_t>(domain_id);
+  participantAttrs.domainId =
+    static_cast<uint32_t>(domain_id != RMW_DEFAULT_DOMAIN_ID ? domain_id : 0u);
 #endif
 
   size_t length = snprintf(nullptr, 0, "enclave=%s;", enclave) + 1;
@@ -263,6 +263,7 @@ rmw_fastrtps_shared_cpp::create_participant(
 rmw_ret_t
 rmw_fastrtps_shared_cpp::destroy_participant(CustomParticipantInfo * participant_info)
 {
+  rmw_ret_t result_ret = RMW_RET_OK;
   if (!participant_info) {
     RMW_SET_ERROR_MSG("participant_info is null");
     return RMW_RET_ERROR;
@@ -271,7 +272,5 @@ rmw_fastrtps_shared_cpp::destroy_participant(CustomParticipantInfo * participant
   delete participant_info->listener;
   participant_info->listener = nullptr;
   delete participant_info;
-
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RMW_RET_ERROR);  // on completion
-  return RMW_RET_OK;
+  return result_ret;
 }
