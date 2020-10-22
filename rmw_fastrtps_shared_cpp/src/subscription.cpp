@@ -45,6 +45,7 @@ destroy_subscription(
   rmw_subscription_t * subscription)
 {
   assert(subscription->implementation_identifier == identifier);
+  static_cast<void>(identifier);
 
   rmw_ret_t ret = RMW_RET_OK;
   auto info = static_cast<CustomSubscriberInfo *>(subscription->data);
@@ -61,6 +62,7 @@ destroy_subscription(
   rmw_free(const_cast<char *>(subscription->topic_name));
   rmw_subscription_free(subscription);
 
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RMW_RET_ERROR);  // on completion
   return ret;
 }
 }  // namespace rmw_fastrtps_shared_cpp
