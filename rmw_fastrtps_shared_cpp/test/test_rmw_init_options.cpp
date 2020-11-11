@@ -28,14 +28,12 @@ using rmw_fastrtps_shared_cpp::rmw_init_options_init;
 using rmw_fastrtps_shared_cpp::rmw_init_options_copy;
 using rmw_fastrtps_shared_cpp::rmw_init_options_fini;
 
-static const char * const some_identifier = "some_identifier";
-
 TEST(RMWInitOptionsTest, init_w_invalid_args_fails) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   // Cannot initialize a null options instance.
   EXPECT_EQ(
     RMW_RET_INVALID_ARGUMENT,
-    rmw_init_options_init(some_identifier, nullptr, allocator));
+    rmw_init_options_init("some_identifier", nullptr, allocator));
   rcutils_reset_error();
 
   rmw_init_options_t options = rmw_get_zero_initialized_init_options();
@@ -43,7 +41,7 @@ TEST(RMWInitOptionsTest, init_w_invalid_args_fails) {
   // Cannot initialize using an invalid allocator.
   EXPECT_EQ(
     RMW_RET_INVALID_ARGUMENT,
-    rmw_init_options_init(some_identifier, &options, invalid_allocator));
+    rmw_init_options_init("some_identifier", &options, invalid_allocator));
   rcutils_reset_error();
 }
 
@@ -52,19 +50,19 @@ TEST(RMWInitOptionsTest, init_twice_fails) {
   rmw_init_options_t options = rmw_get_zero_initialized_init_options();
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
-  ASSERT_EQ(RMW_RET_OK, rmw_init_options_init(some_identifier, &options, allocator)) <<
+  ASSERT_EQ(RMW_RET_OK, rmw_init_options_init("some_identifier", &options, allocator)) <<
     rcutils_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcutils_reset_error();
-    EXPECT_EQ(RMW_RET_OK, rmw_init_options_fini(some_identifier, &options)) <<
+    EXPECT_EQ(RMW_RET_OK, rmw_init_options_fini("some_identifier", &options)) <<
       rcutils_get_error_string().str;
     rcutils_reset_error();
   });
 
   EXPECT_EQ(
     RMW_RET_INVALID_ARGUMENT,
-    rmw_init_options_init(some_identifier, &options, allocator));
+    rmw_init_options_init("some_identifier", &options, allocator));
   rcutils_reset_error();
 }
 
@@ -73,17 +71,17 @@ TEST(RMWInitOptionsTest, init) {
   rmw_init_options_t options = rmw_get_zero_initialized_init_options();
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
-  ASSERT_EQ(RMW_RET_OK, rmw_init_options_init(some_identifier, &options, allocator)) <<
+  ASSERT_EQ(RMW_RET_OK, rmw_init_options_init("some_identifier", &options, allocator)) <<
     rcutils_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcutils_reset_error();
-    EXPECT_EQ(RMW_RET_OK, rmw_init_options_fini(some_identifier, &options)) <<
+    EXPECT_EQ(RMW_RET_OK, rmw_init_options_fini("some_identifier", &options)) <<
       rcutils_get_error_string().str;
     rcutils_reset_error();
   });
 
-  EXPECT_EQ(some_identifier, options.implementation_identifier);
+  EXPECT_EQ("some_identifier", options.implementation_identifier);
 }
 
 
@@ -95,14 +93,14 @@ TEST(RMWInitOptionsTest, copy_w_invalid_args_fails) {
   ASSERT_EQ(
     RMW_RET_OK,
     rmw_init_options_init(
-      some_identifier,
+      "some_identifier",
       &initialized_options,
       allocator)) <<
     rcutils_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcutils_reset_error();
-    EXPECT_EQ(RMW_RET_OK, rmw_init_options_fini(some_identifier, &initialized_options)) <<
+    EXPECT_EQ(RMW_RET_OK, rmw_init_options_fini("some_identifier", &initialized_options)) <<
       rcutils_get_error_string().str;
     rcutils_reset_error();
   });
@@ -111,7 +109,7 @@ TEST(RMWInitOptionsTest, copy_w_invalid_args_fails) {
   EXPECT_EQ(
     RMW_RET_INVALID_ARGUMENT,
     rmw_init_options_copy(
-      some_identifier,
+      "some_identifier",
       nullptr,
       &not_initialized_options));
   rcutils_reset_error();
@@ -120,7 +118,7 @@ TEST(RMWInitOptionsTest, copy_w_invalid_args_fails) {
   EXPECT_EQ(
     RMW_RET_INVALID_ARGUMENT,
     rmw_init_options_copy(
-      some_identifier,
+      "some_identifier",
       &initialized_options,
       nullptr));
   rcutils_reset_error();
@@ -137,7 +135,7 @@ TEST(RMWInitOptionsTest, copy_w_invalid_args_fails) {
   // Cannot copy to an already initialized options instance.
   EXPECT_EQ(
     RMW_RET_INVALID_ARGUMENT, rmw_init_options_copy(
-      some_identifier,
+      "some_identifier",
       &initialized_options,
       &initialized_options));
   rcutils_reset_error();
@@ -149,12 +147,12 @@ TEST(RMWInitOptionsTest, copy) {
   rmw_init_options_t preset_options = rmw_get_zero_initialized_init_options();
 
   rcutils_reset_error();
-  ASSERT_EQ(RMW_RET_OK, rmw_init_options_init(some_identifier, &preset_options, allocator)) <<
+  ASSERT_EQ(RMW_RET_OK, rmw_init_options_init("some_identifier", &preset_options, allocator)) <<
     rcutils_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcutils_reset_error();
-    EXPECT_EQ(RMW_RET_OK, rmw_init_options_fini(some_identifier, &preset_options)) <<
+    EXPECT_EQ(RMW_RET_OK, rmw_init_options_fini("some_identifier", &preset_options)) <<
       rcutils_get_error_string().str;
     rcutils_reset_error();
   });
@@ -165,13 +163,13 @@ TEST(RMWInitOptionsTest, copy) {
   ASSERT_TRUE(preset_options.security_options.security_root_path != nullptr);
 
   rmw_init_options_t options = rmw_get_zero_initialized_init_options();
-  ASSERT_EQ(RMW_RET_OK, rmw_init_options_copy(some_identifier, &preset_options, &options)) <<
+  ASSERT_EQ(RMW_RET_OK, rmw_init_options_copy("some_identifier", &preset_options, &options)) <<
     rcutils_get_error_string().str;
 
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcutils_reset_error();
-    EXPECT_EQ(RMW_RET_OK, rmw_init_options_fini(some_identifier, &options)) <<
+    EXPECT_EQ(RMW_RET_OK, rmw_init_options_fini("some_identifier", &options)) <<
       rcutils_get_error_string().str;
     rcutils_reset_error();
   });
@@ -194,12 +192,12 @@ TEST(RMWInitOptionsTest, bad_alloc_on_copy) {
   rmw_init_options_t preset_options = rmw_get_zero_initialized_init_options();
   ASSERT_EQ(
     RMW_RET_OK,
-    rmw_init_options_init(some_identifier, &preset_options, failing_allocator)) <<
+    rmw_init_options_init("some_identifier", &preset_options, failing_allocator)) <<
     rcutils_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcutils_reset_error();
-    EXPECT_EQ(RMW_RET_OK, rmw_init_options_fini(some_identifier, &preset_options)) <<
+    EXPECT_EQ(RMW_RET_OK, rmw_init_options_fini("some_identifier", &preset_options)) <<
       rcutils_get_error_string().str;
     rcutils_reset_error();
   });
@@ -209,34 +207,33 @@ TEST(RMWInitOptionsTest, bad_alloc_on_copy) {
   rmw_init_options_t options = rmw_get_zero_initialized_init_options();
   EXPECT_EQ(
     RMW_RET_BAD_ALLOC,
-    rmw_init_options_copy(some_identifier, &preset_options, &options));
+    rmw_init_options_copy("some_identifier", &preset_options, &options));
 }
 
 TEST(RMWInitOptionsTest, fini_w_invalid_args_fails) {
   // Cannot finalize a null options instance.
-  EXPECT_EQ(RMW_RET_INVALID_ARGUMENT, rmw_init_options_fini(some_identifier, nullptr));
+  EXPECT_EQ(RMW_RET_INVALID_ARGUMENT, rmw_init_options_fini("some_identifier", nullptr));
   rcutils_reset_error();
 
   rmw_init_options_t options = rmw_get_zero_initialized_init_options();
   // Cannot finalize an options instance that has not been initialized.
-  EXPECT_EQ(RMW_RET_INVALID_ARGUMENT, rmw_init_options_fini(some_identifier, &options));
+  EXPECT_EQ(RMW_RET_INVALID_ARGUMENT, rmw_init_options_fini("some_identifier", &options));
   rcutils_reset_error();
 
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
-  ASSERT_EQ(RMW_RET_OK, rmw_init_options_init(some_identifier, &options, allocator)) <<
+  ASSERT_EQ(RMW_RET_OK, rmw_init_options_init("some_identifier", &options, allocator)) <<
     rcutils_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcutils_reset_error();
-    EXPECT_EQ(RMW_RET_OK, rmw_init_options_fini(some_identifier, &options)) <<
+    EXPECT_EQ(RMW_RET_OK, rmw_init_options_fini("some_identifier", &options)) <<
       rcutils_get_error_string().str;
     rcutils_reset_error();
   });
 
   // Cannot finalize an options instance if implementation identifiers do not match.
-  const char * const another_identifier = "another_identifier";
   EXPECT_EQ(
     RMW_RET_INCORRECT_RMW_IMPLEMENTATION,
-    rmw_init_options_fini(another_identifier, &options));
+    rmw_init_options_fini("another_identifier", &options));
   rcutils_reset_error();
 }
