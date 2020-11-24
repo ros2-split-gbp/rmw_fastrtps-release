@@ -15,7 +15,6 @@
 #include "rmw_fastrtps_dynamic_cpp/get_participant.hpp"
 
 #include "rmw_fastrtps_shared_cpp/custom_participant_info.hpp"
-#include "rmw_fastrtps_shared_cpp/rmw_context_impl.hpp"
 #include "rmw_fastrtps_dynamic_cpp/identifier.hpp"
 
 namespace rmw_fastrtps_dynamic_cpp
@@ -30,7 +29,7 @@ get_participant(rmw_node_t * node)
   if (node->implementation_identifier != eprosima_fastrtps_identifier) {
     return nullptr;
   }
-  auto impl = static_cast<CustomParticipantInfo *>(node->context->impl->participant_info);
+  auto impl = static_cast<CustomParticipantInfo *>(node->data);
   return impl->participant;
 }
 

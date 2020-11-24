@@ -34,21 +34,20 @@
 
 class SubListener;
 
-struct CustomSubscriberInfo : public CustomEventInfo
+typedef struct CustomSubscriberInfo : public CustomEventInfo
 {
   virtual ~CustomSubscriberInfo() = default;
 
-  eprosima::fastrtps::Subscriber * subscriber_{nullptr};
-  SubListener * listener_{nullptr};
-  rmw_fastrtps_shared_cpp::TypeSupport * type_support_{nullptr};
-  const void * type_support_impl_{nullptr};
-  rmw_gid_t subscription_gid_{};
-  const char * typesupport_identifier_{nullptr};
+  eprosima::fastrtps::Subscriber * subscriber_;
+  SubListener * listener_;
+  rmw_fastrtps_shared_cpp::TypeSupport * type_support_;
+  const void * type_support_impl_;
+  const char * typesupport_identifier_;
 
   RMW_FASTRTPS_SHARED_CPP_PUBLIC
   EventListenerInterface *
   getListener() const final;
-};
+} CustomSubscriberInfo;
 
 class SubListener : public EventListenerInterface, public eprosima::fastrtps::SubscriberListener
 {
@@ -67,23 +66,30 @@ public:
   // SubscriberListener implementation
   void
   onSubscriptionMatched(
-    eprosima::fastrtps::Subscriber * sub, eprosima::fastrtps::rtps::MatchingInfo & info) final
+    eprosima::fastrtps::Subscriber * /*sub*/, eprosima::fastrtps::rtps::MatchingInfo & info) final
   {
-    {
-      std::lock_guard<std::mutex> lock(internalMutex_);
-      if (eprosima::fastrtps::rtps::MATCHED_MATCHING == info.status) {
-        publishers_.insert(info.remoteEndpointGuid);
-      } else if (eprosima::fastrtps::rtps::REMOVED_MATCHING == info.status) {
-        publishers_.erase(info.remoteEndpointGuid);
-      }
+    std::lock_guard<std::mutex> lock(internalMutex_);
+    if (eprosima::fastrtps::rtps::MATCHED_MATCHING == info.status) {
+      publishers_.insert(info.remoteEndpointGuid);
+    } else if (eprosima::fastrtps::rtps::REMOVED_MATCHING == info.status) {
+      publishers_.erase(info.remoteEndpointGuid);
     }
-    data_taken(sub);
   }
 
   void
   onNewDataMessage(eprosima::fastrtps::Subscriber * sub) final
   {
-    data_taken(sub);
+    // Make sure to call into Fast-RTPS before taking the lock to avoid an
+    // ABBA deadlock between internalMutex_ and mutexes inside of Fast-RTPS.
+    uint64_t unread_count = sub->getUnreadCount();
+
+    std::lock_guard<std::mutex> lock(internalMutex_);
+
+    // the change to liveliness_lost_count_ needs to be mutually exclusive with
+    // rmw_wait() which checks hasEvent() and decides if wait() needs to be called
+    ConditionalScopedLock clock(conditionMutex_, conditionVariable_);
+
+    data_.store(unread_count, std::memory_order_relaxed);
   }
 
   RMW_FASTRTPS_SHARED_CPP_PUBLIC
@@ -135,14 +141,10 @@ public:
   {
     // Make sure to call into Fast-RTPS before taking the lock to avoid an
     // ABBA deadlock between internalMutex_ and mutexes inside of Fast-RTPS.
-#if FASTRTPS_VERSION_MAJOR == 1 && FASTRTPS_VERSION_MINOR < 9
     uint64_t unread_count = sub->getUnreadCount();
-#else
-    uint64_t unread_count = sub->get_unread_count();
-#endif
 
     std::lock_guard<std::mutex> lock(internalMutex_);
-    ConditionalScopedLock clock(conditionMutex_, conditionVariable_);
+    ConditionalScopedLock clock(conditionMutex_);
     data_.store(unread_count, std::memory_order_relaxed);
   }
 

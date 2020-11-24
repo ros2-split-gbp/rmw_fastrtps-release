@@ -21,13 +21,11 @@
 
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
-#include "rmw/impl/cpp/macros.hpp"
 #include "rmw/types.h"
 
+#include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_client_info.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_service_info.hpp"
-#include "rmw_fastrtps_shared_cpp/guid_utils.hpp"
-#include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 #include "rmw_fastrtps_shared_cpp/TypeSupport.hpp"
 
 namespace rmw_fastrtps_shared_cpp
@@ -39,15 +37,16 @@ __rmw_send_request(
   const void * ros_request,
   int64_t * sequence_id)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(client, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    client,
-    client->implementation_identifier, identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RMW_CHECK_ARGUMENT_FOR_NULL(ros_request, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(sequence_id, RMW_RET_INVALID_ARGUMENT);
+  assert(client);
+  assert(ros_request);
+  assert(sequence_id);
 
   rmw_ret_t returnedValue = RMW_RET_ERROR;
+
+  if (client->implementation_identifier != identifier) {
+    RMW_SET_ERROR_MSG("node handle not from this implementation");
+    return RMW_RET_ERROR;
+  }
 
   auto info = static_cast<CustomClientInfo *>(client->data);
   assert(info);
@@ -57,7 +56,6 @@ __rmw_send_request(
   data.is_cdr_buffer = false;
   data.data = const_cast<void *>(ros_request);
   data.impl = info->request_type_support_impl_;
-  wparams.related_sample_identity().writer_guid() = info->reader_guid_;
   if (info->request_publisher_->write(&data, wparams)) {
     returnedValue = RMW_RET_OK;
     *sequence_id = ((int64_t)wparams.sample_identity().sequence_number().high) << 32 |
@@ -73,20 +71,21 @@ rmw_ret_t
 __rmw_take_request(
   const char * identifier,
   const rmw_service_t * service,
-  rmw_service_info_t * request_header,
+  rmw_request_id_t * request_header,
   void * ros_request,
   bool * taken)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(service, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    service,
-    service->implementation_identifier, identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RMW_CHECK_ARGUMENT_FOR_NULL(request_header, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(ros_request, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_INVALID_ARGUMENT);
+  assert(service);
+  assert(request_header);
+  assert(ros_request);
+  assert(taken);
 
   *taken = false;
+
+  if (service->implementation_identifier != identifier) {
+    RMW_SET_ERROR_MSG("service handle not from this implementation");
+    return RMW_RET_ERROR;
+  }
 
   auto info = static_cast<CustomServiceInfo *>(service->data);
   assert(info);
@@ -100,14 +99,10 @@ __rmw_take_request(
       deser, ros_request, info->request_type_support_impl_);
 
     // Get header
-    rmw_fastrtps_shared_cpp::copy_from_fastrtps_guid_to_byte_array(
-      request.sample_identity_.writer_guid(),
-      request_header->request_id.writer_guid);
-    request_header->request_id.sequence_number =
-      ((int64_t)request.sample_identity_.sequence_number().high) <<
+    memcpy(request_header->writer_guid, &request.sample_identity_.writer_guid(),
+      sizeof(eprosima::fastrtps::rtps::GUID_t));
+    request_header->sequence_number = ((int64_t)request.sample_identity_.sequence_number().high) <<
       32 | request.sample_identity_.sequence_number().low;
-    request_header->source_timestamp = request.sample_info_.sourceTimestamp.to_ns();
-    request_header->received_timestamp = request.sample_info_.receptionTimestamp.to_ns();
 
     delete request.buffer_;
 

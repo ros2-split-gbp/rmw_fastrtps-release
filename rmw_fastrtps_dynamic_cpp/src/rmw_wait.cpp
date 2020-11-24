@@ -16,7 +16,6 @@
 #include "rmw/rmw.h"
 
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
-#include "rmw_fastrtps_dynamic_cpp/identifier.hpp"
 
 extern "C"
 {
@@ -31,7 +30,6 @@ rmw_wait(
   const rmw_time_t * wait_timeout)
 {
   return rmw_fastrtps_shared_cpp::__rmw_wait(
-    eprosima_fastrtps_identifier, subscriptions, guard_conditions, services, clients, events,
-    wait_set, wait_timeout);
+    subscriptions, guard_conditions, services, clients, events, wait_set, wait_timeout);
 }
 }  // extern "C"

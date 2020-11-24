@@ -1,4 +1,3 @@
-// Copyright 2019 Open Source Robotics Foundation, Inc.
 // Copyright 2016-2018 Proyectos y Sistemas de Mantenimiento SL (eProsima).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,12 +24,9 @@
 #include "rmw/rmw.h"
 #include "rmw/types.h"
 
-#include "rmw_dds_common/context.hpp"
-
 #include "demangle.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_client_info.hpp"
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
-#include "rmw_fastrtps_shared_cpp/rmw_context_impl.hpp"
 
 namespace rmw_fastrtps_shared_cpp
 {
@@ -49,17 +45,12 @@ __rmw_service_server_is_available(
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     node handle,
     node->implementation_identifier, identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+    return RMW_RET_ERROR);
 
   if (!client) {
     RMW_SET_ERROR_MSG("client handle is null");
     return RMW_RET_ERROR;
   }
-
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    client handle,
-    client->implementation_identifier, identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   if (!is_available) {
     RMW_SET_ERROR_MSG("is_available is null");
@@ -75,17 +66,22 @@ __rmw_service_server_is_available(
   auto pub_topic_name =
     client_info->request_publisher_->getAttributes().topic.getTopicName().to_string();
 
+  auto pub_fqdn = _demangle_if_ros_topic(pub_topic_name);
+
   auto sub_topic_name =
     client_info->response_subscriber_->getAttributes().topic.getTopicName().to_string();
 
-  *is_available = false;
-  auto common_context = static_cast<rmw_dds_common::Context *>(node->context->impl->common);
+  auto sub_fqdn = _demangle_if_ros_topic(sub_topic_name);
 
+  *is_available = false;
   size_t number_of_request_subscribers = 0;
-  rmw_ret_t ret =
-    common_context->graph_cache.get_reader_count(pub_topic_name, &number_of_request_subscribers);
+  rmw_ret_t ret = __rmw_count_subscribers(
+    identifier,
+    node,
+    pub_fqdn.c_str(),
+    &number_of_request_subscribers);
   if (ret != RMW_RET_OK) {
-    // error
+    // error string already set
     return ret;
   }
   if (0 == number_of_request_subscribers) {
@@ -94,10 +90,13 @@ __rmw_service_server_is_available(
   }
 
   size_t number_of_response_publishers = 0;
-  ret =
-    common_context->graph_cache.get_writer_count(sub_topic_name, &number_of_response_publishers);
+  ret = __rmw_count_publishers(
+    identifier,
+    node,
+    sub_fqdn.c_str(),
+    &number_of_response_publishers);
   if (ret != RMW_RET_OK) {
-    // error
+    // error string already set
     return ret;
   }
   if (0 == number_of_response_publishers) {
@@ -105,22 +104,11 @@ __rmw_service_server_is_available(
     return RMW_RET_OK;
   }
 
-  if (number_of_request_subscribers != number_of_response_publishers) {
+  if (0 == client_info->request_publisher_matched_count_.load()) {
     // not ready
     return RMW_RET_OK;
   }
-
-  size_t matched_request_pubs = client_info->request_publisher_matched_count_.load();
-  if (0 == matched_request_pubs) {
-    // not ready
-    return RMW_RET_OK;
-  }
-  size_t matched_response_subs = client_info->response_subscriber_matched_count_.load();
-  if (0 == matched_response_subs) {
-    // not ready
-    return RMW_RET_OK;
-  }
-  if (matched_request_pubs != matched_response_subs) {
+  if (0 == client_info->response_subscriber_matched_count_.load()) {
     // not ready
     return RMW_RET_OK;
   }

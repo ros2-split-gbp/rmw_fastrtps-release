@@ -1,4 +1,3 @@
-// Copyright 2019 Open Source Robotics Foundation, Inc.
 // Copyright 2016-2018 Proyectos y Sistemas de Mantenimiento SL (eProsima).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,32 +25,12 @@ _demangle_if_ros_topic(const std::string & topic_name);
 std::string
 _demangle_if_ros_type(const std::string & dds_type_string);
 
-/// Return the topic name for a given topic if it is part of one, else "".
-std::string
-_demangle_ros_topic_from_topic(const std::string & topic_name);
-
-/// Return the service name for a given topic if it is part of a service, else "".
+/// Return the service name for a given topic if it is part of one, else "".
 std::string
 _demangle_service_from_topic(const std::string & topic_name);
-
-/// Return the service name for a given topic if it is part of a service request, else "".
-std::string
-_demangle_service_request_from_topic(const std::string & topic_name);
-
-/// Return the service name for a given topic if it is part of a service reply, else "".
-std::string
-_demangle_service_reply_from_topic(const std::string & topic_name);
 
 /// Return the demangled service type if it is a ROS srv type, else "".
 std::string
 _demangle_service_type_only(const std::string & dds_type_name);
-
-/// Used when ros names are not mangled.
-std::string
-_identity_demangle(const std::string & name);
-
-
-using DemangleFunction = std::string (*)(const std::string &);
-using MangleFunction = DemangleFunction;
 
 #endif  // DEMANGLE_HPP_

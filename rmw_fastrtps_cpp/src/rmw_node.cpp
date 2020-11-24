@@ -1,4 +1,3 @@
-// Copyright 2020 Open Source Robotics Foundation, Inc.
 // Copyright 2016-2018 Proyectos y Sistemas de Mantenimiento SL (eProsima).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,19 +18,16 @@
 #include <string>
 
 #include "rcutils/filesystem.h"
+#include "rcutils/logging_macros.h"
 
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
 #include "rmw/impl/cpp/macros.hpp"
-#include "rmw/ret_types.h"
 #include "rmw/rmw.h"
 
-#include "rmw_fastrtps_shared_cpp/init_rmw_context_impl.hpp"
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
-#include "rmw_fastrtps_shared_cpp/rmw_context_impl.hpp"
 
 #include "rmw_fastrtps_cpp/identifier.hpp"
-#include "rmw_fastrtps_cpp/init_rmw_context_impl.hpp"
 
 extern "C"
 {
@@ -41,60 +37,31 @@ rmw_create_node(
   const char * name,
   const char * namespace_,
   size_t domain_id,
-  bool localhost_only)
+  const rmw_node_security_options_t * security_options)
 {
-  (void)domain_id;
-  (void)localhost_only;
-  RMW_CHECK_ARGUMENT_FOR_NULL(context, nullptr);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, NULL);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     init context,
     context->implementation_identifier,
     eprosima_fastrtps_identifier,
     // TODO(wjwwood): replace this with RMW_RET_INCORRECT_RMW_IMPLEMENTATION when refactored
-    return nullptr);
-  RMW_CHECK_FOR_NULL_WITH_MSG(
-    context->impl,
-    "expected initialized context",
-    return nullptr);
-  if (context->impl->is_shutdown) {
-    RCUTILS_SET_ERROR_MSG("context has been shutdown");
-    return nullptr;
-  }
-
-  if (RMW_RET_OK != rmw_fastrtps_cpp::increment_context_impl_ref_count(context)) {
-    return nullptr;
-  }
-
-  rmw_node_t * node = rmw_fastrtps_shared_cpp::__rmw_create_node(
-    context, eprosima_fastrtps_identifier, name, namespace_);
-
-  if (nullptr == node) {
-    if (RMW_RET_OK != rmw_fastrtps_shared_cpp::decrement_context_impl_ref_count(context)) {
-      RCUTILS_SAFE_FWRITE_TO_STDERR(
-        "'decrement_context_impl_ref_count' failed while being executed due to '"
-        RCUTILS_STRINGIFY(__function__) "' failing");
-    }
-  }
-  return node;
+    return NULL);
+  return rmw_fastrtps_shared_cpp::__rmw_create_node(
+    eprosima_fastrtps_identifier, name, namespace_, domain_id, security_options);
 }
 
 rmw_ret_t
 rmw_destroy_node(rmw_node_t * node)
 {
-  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    node,
-    node->implementation_identifier,
-    eprosima_fastrtps_identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-
-  rmw_context_t * context = node->context;
-  rmw_ret_t ret = rmw_fastrtps_shared_cpp::__rmw_destroy_node(
+  return rmw_fastrtps_shared_cpp::__rmw_destroy_node(
     eprosima_fastrtps_identifier, node);
-  if (RMW_RET_OK != ret) {
-    return ret;
-  }
-  return rmw_fastrtps_shared_cpp::decrement_context_impl_ref_count(context);
+}
+
+rmw_ret_t
+rmw_node_assert_liveliness(const rmw_node_t * node)
+{
+  return rmw_fastrtps_shared_cpp::__rmw_node_assert_liveliness(
+    eprosima_fastrtps_identifier, node);
 }
 
 const rmw_guard_condition_t *

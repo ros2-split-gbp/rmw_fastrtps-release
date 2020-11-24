@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>rmw_fastrtps_shared_cpp</name>
-  <version>1.2.3</version>
+  <version>0.7.8</version>
   <description>Code shared on static and dynamic type support of rmw_fastrtps_cpp.</description>
   <maintainer email="michel@ekumenlabs.com">Michel Hidalgo</maintainer>
   <maintainer email="michael.jeronimo@openrobotics.org">Michael Jeronimo</maintainer>
@@ -21,7 +21,6 @@
   <build_depend>rcpputils</build_depend>
   <build_depend>rcutils</build_depend>
   <build_depend>rmw</build_depend>
-  <build_depend>rmw_dds_common</build_depend>
 
   <build_export_depend>fastcdr</build_export_depend>
   <build_export_depend>fastrtps</build_export_depend>
@@ -29,11 +28,9 @@
   <build_export_depend>rcpputils</build_export_depend>
   <build_export_depend>rcutils</build_export_depend>
   <build_export_depend>rmw</build_export_depend>
-  <build_export_depend>rmw_dds_common</build_export_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
-  <test_depend>osrf_testing_tools_cpp</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
