@@ -108,8 +108,7 @@ rosidl_generator_c__void__Sequence__fini(rosidl_generator_c__void__Sequence * se
 }
 
 template<typename MembersType>
-TypeSupport<MembersType>::TypeSupport(const void * ros_type_support)
-: BaseTypeSupport(ros_type_support)
+TypeSupport<MembersType>::TypeSupport()
 {
   m_isGetKeyDefined = false;
   max_size_bound_ = false;
@@ -373,9 +372,7 @@ size_t get_array_size_and_assign_field(
 
 template<typename MembersType>
 bool TypeSupport<MembersType>::serializeROSmessage(
-  eprosima::fastcdr::Cdr & ser,
-  const MembersType * members,
-  const void * ros_message) const
+  eprosima::fastcdr::Cdr & ser, const MembersType * members, const void * ros_message)
 {
   assert(members);
   assert(ros_message);
@@ -633,9 +630,7 @@ size_t next_field_align_string<std::wstring>(
 
 template<typename MembersType>
 size_t TypeSupport<MembersType>::getEstimatedSerializedSize(
-  const MembersType * members,
-  const void * ros_message,
-  size_t current_alignment) const
+  const MembersType * members, const void * ros_message, size_t current_alignment)
 {
   assert(members);
   assert(ros_message);
@@ -953,10 +948,7 @@ inline size_t get_submessage_array_deserialize(
 
 template<typename MembersType>
 bool TypeSupport<MembersType>::deserializeROSmessage(
-  eprosima::fastcdr::Cdr & deser,
-  const MembersType * members,
-  void * ros_message,
-  bool call_new) const
+  eprosima::fastcdr::Cdr & deser, const MembersType * members, void * ros_message, bool call_new)
 {
   assert(members);
   assert(ros_message);
@@ -1124,19 +1116,17 @@ size_t TypeSupport<MembersType>::calculateMaxSerializedSize(
 
 template<typename MembersType>
 size_t TypeSupport<MembersType>::getEstimatedSerializedSize(
-  const void * ros_message, const void * impl) const
+  const void * ros_message)
 {
   if (max_size_bound_) {
     return m_typeSize;
   }
 
   assert(ros_message);
-  assert(members_);
 
   // Encapsulation size
   size_t ret_val = 4;
 
-  (void)impl;
   if (members_->member_count_ != 0) {
     ret_val += TypeSupport::getEstimatedSerializedSize(members_, ros_message, 0);
   } else {
@@ -1148,15 +1138,13 @@ size_t TypeSupport<MembersType>::getEstimatedSerializedSize(
 
 template<typename MembersType>
 bool TypeSupport<MembersType>::serializeROSmessage(
-  const void * ros_message, eprosima::fastcdr::Cdr & ser, const void * impl) const
+  const void * ros_message, eprosima::fastcdr::Cdr & ser)
 {
   assert(ros_message);
-  assert(members_);
 
   // Serialize encapsulation
   ser.serialize_encapsulation();
 
-  (void)impl;
   if (members_->member_count_ != 0) {
     TypeSupport::serializeROSmessage(ser, members_, ros_message);
   } else {
@@ -1168,15 +1156,13 @@ bool TypeSupport<MembersType>::serializeROSmessage(
 
 template<typename MembersType>
 bool TypeSupport<MembersType>::deserializeROSmessage(
-  eprosima::fastcdr::Cdr & deser, void * ros_message, const void * impl) const
+  eprosima::fastcdr::Cdr & deser, void * ros_message)
 {
   assert(ros_message);
-  assert(members_);
 
   // Deserialize encapsulation.
   deser.read_encapsulation();
 
-  (void)impl;
   if (members_->member_count_ != 0) {
     TypeSupport::deserializeROSmessage(deser, members_, ros_message, false);
   } else {

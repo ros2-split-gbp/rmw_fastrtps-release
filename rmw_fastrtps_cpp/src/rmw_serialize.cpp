@@ -41,7 +41,7 @@ rmw_serialize(
 
   auto callbacks = static_cast<const message_type_support_callbacks_t *>(ts->data);
   auto tss = new MessageTypeSupport_cpp(callbacks);
-  auto data_length = tss->getEstimatedSerializedSize(ros_message, callbacks);
+  auto data_length = tss->getEstimatedSerializedSize(ros_message);
   if (serialized_message->buffer_capacity < data_length) {
     if (rmw_serialized_message_resize(serialized_message, data_length) != RMW_RET_OK) {
       RMW_SET_ERROR_MSG("unable to dynamically resize serialized message");
@@ -54,7 +54,7 @@ rmw_serialize(
   eprosima::fastcdr::Cdr ser(
     buffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN, eprosima::fastcdr::Cdr::DDS_CDR);
 
-  auto ret = tss->serializeROSmessage(ros_message, ser, callbacks);
+  auto ret = tss->serializeROSmessage(ros_message, ser);
   serialized_message->buffer_length = data_length;
   serialized_message->buffer_capacity = data_length;
   delete tss;
@@ -85,7 +85,7 @@ rmw_deserialize(
   eprosima::fastcdr::Cdr deser(buffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
     eprosima::fastcdr::Cdr::DDS_CDR);
 
-  auto ret = tss->deserializeROSmessage(deser, ros_message, callbacks);
+  auto ret = tss->deserializeROSmessage(deser, ros_message);
   delete tss;
   return ret == true ? RMW_RET_OK : RMW_RET_ERROR;
 }

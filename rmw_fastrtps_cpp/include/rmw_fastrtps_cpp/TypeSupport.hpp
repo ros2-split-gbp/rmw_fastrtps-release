@@ -35,13 +35,11 @@ namespace rmw_fastrtps_cpp
 class TypeSupport : public rmw_fastrtps_shared_cpp::TypeSupport
 {
 public:
-  size_t getEstimatedSerializedSize(const void * ros_message, const void * impl) const override;
+  size_t getEstimatedSerializedSize(const void * ros_message);
 
-  bool serializeROSmessage(
-    const void * ros_message, eprosima::fastcdr::Cdr & ser, const void * impl) const override;
+  bool serializeROSmessage(const void * ros_message, eprosima::fastcdr::Cdr & ser);
 
-  bool deserializeROSmessage(
-    eprosima::fastcdr::Cdr & deser, void * ros_message, const void * impl) const override;
+  bool deserializeROSmessage(eprosima::fastcdr::Cdr & deser, void * ros_message);
 
 protected:
   TypeSupport();

@@ -106,9 +106,6 @@ rmw_create_client(
   response_members = static_cast<const message_type_support_callbacks_t *>(
     service_members->response_members_->data);
 
-  info->request_type_support_impl_ = request_members;
-  info->response_type_support_impl_ = response_members;
-
   std::string request_type_name = _create_type_name(request_members);
   std::string response_type_name = _create_type_name(response_members);
 
@@ -171,7 +168,7 @@ rmw_create_client(
     goto fail;
   }
 
-  // Create Client Subscriber and set QoS
+  // Create Client Publisher and set QoS
   if (!get_datawriter_qos(*qos_policies, publisherParam)) {
     RMW_SET_ERROR_MSG("failed to get datawriter qos");
     goto fail;
@@ -180,7 +177,7 @@ rmw_create_client(
   info->request_publisher_ =
     Domain::createPublisher(participant, publisherParam, info->pub_listener_);
   if (!info->request_publisher_) {
-    RMW_SET_ERROR_MSG("create_publisher() could not create publisher");
+    RMW_SET_ERROR_MSG("create_client() could not create publisher");
     goto fail;
   }
 
