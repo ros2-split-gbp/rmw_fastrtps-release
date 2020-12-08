@@ -18,9 +18,10 @@
 #include "./visibility_control.h"
 
 #include "rmw/error_handling.h"
-#include "rmw/rmw.h"
-#include "rmw/types.h"
 #include "rmw/event.h"
+#include "rmw/rmw.h"
+#include "rmw/topic_endpoint_info_array.h"
+#include "rmw/types.h"
 #include "rmw/names_and_types.h"
 
 namespace rmw_fastrtps_shared_cpp
@@ -85,24 +86,16 @@ __rmw_set_log_severity(rmw_log_severity_t severity);
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_node_t *
 __rmw_create_node(
+  rmw_context_t * context,
   const char * identifier,
   const char * name,
-  const char * namespace_,
-  size_t domain_id,
-  const rmw_node_security_options_t * security_options,
-  bool localhost_only);
+  const char * namespace_);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
 __rmw_destroy_node(
   const char * identifier,
   rmw_node_t * node);
-
-RMW_FASTRTPS_SHARED_CPP_PUBLIC
-rmw_ret_t
-__rmw_node_assert_liveliness(
-  const char * identifier,
-  const rmw_node_t * node);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 const rmw_guard_condition_t *
@@ -115,6 +108,24 @@ __rmw_get_node_names(
   const rmw_node_t * node,
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces);
+
+RMW_FASTRTPS_SHARED_CPP_PUBLIC
+rmw_ret_t
+__rmw_init_event(
+  const char * identifier,
+  rmw_event_t * rmw_event,
+  const char * topic_endpoint_impl_identifier,
+  void * data,
+  rmw_event_type_t event_type);
+
+RMW_FASTRTPS_SHARED_CPP_PUBLIC
+rmw_ret_t
+__rmw_get_node_names_with_enclaves(
+  const char * identifier,
+  const rmw_node_t * node,
+  rcutils_string_array_t * node_names,
+  rcutils_string_array_t * node_namespaces,
+  rcutils_string_array_t * enclaves);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
@@ -142,7 +153,7 @@ RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
 __rmw_destroy_publisher(
   const char * identifier,
-  rmw_node_t * node,
+  const rmw_node_t * node,
   rmw_publisher_t * publisher);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
@@ -170,7 +181,7 @@ rmw_ret_t
 __rmw_take_request(
   const char * identifier,
   const rmw_service_t * service,
-  rmw_request_id_t * request_header,
+  rmw_service_info_t * request_header,
   void * ros_request,
   bool * taken);
 
@@ -179,7 +190,7 @@ rmw_ret_t
 __rmw_take_response(
   const char * identifier,
   const rmw_client_t * client,
-  rmw_request_id_t * request_header,
+  rmw_service_info_t * request_header,
   void * ros_response,
   bool * taken);
 
@@ -260,7 +271,7 @@ RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
 __rmw_destroy_subscription(
   const char * identifier,
-  rmw_node_t * node,
+  const rmw_node_t * node,
   rmw_subscription_t * subscription);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
@@ -282,6 +293,17 @@ __rmw_take(
   const rmw_subscription_t * subscription,
   void * ros_message,
   bool * taken,
+  rmw_subscription_allocation_t * allocation);
+
+RMW_FASTRTPS_SHARED_CPP_PUBLIC
+rmw_ret_t
+__rmw_take_sequence(
+  const char * identifier,
+  const rmw_subscription_t * subscription,
+  size_t count,
+  rmw_message_sequence_t * message_sequencxe,
+  rmw_message_info_sequence_t * message_info_sequence,
+  size_t * taken,
   rmw_subscription_allocation_t * allocation);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
@@ -333,6 +355,7 @@ __rmw_get_topic_names_and_types(
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
 __rmw_wait(
+  const char * identifier,
   rmw_subscriptions_t * subscriptions,
   rmw_guard_conditions_t * guard_conditions,
   rmw_services_t * services,
@@ -348,6 +371,26 @@ __rmw_create_wait_set(const char * identifier, rmw_context_t * context, size_t m
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
 __rmw_destroy_wait_set(const char * identifier, rmw_wait_set_t * wait_set);
+
+RMW_FASTRTPS_SHARED_CPP_PUBLIC
+rmw_ret_t
+__rmw_get_publishers_info_by_topic(
+  const char * identifier,
+  const rmw_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * topic_name,
+  bool no_mangle,
+  rmw_topic_endpoint_info_array_t * publishers_info);
+
+RMW_FASTRTPS_SHARED_CPP_PUBLIC
+rmw_ret_t
+__rmw_get_subscriptions_info_by_topic(
+  const char * identifier,
+  const rmw_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * topic_name,
+  bool no_mangle,
+  rmw_topic_endpoint_info_array_t * subscriptions_info);
 
 }  // namespace rmw_fastrtps_shared_cpp
 

@@ -41,15 +41,18 @@ class ClientPubListener;
 
 typedef struct CustomClientInfo
 {
-  rmw_fastrtps_shared_cpp::TypeSupport * request_type_support_;
-  rmw_fastrtps_shared_cpp::TypeSupport * response_type_support_;
-  eprosima::fastrtps::Subscriber * response_subscriber_;
-  eprosima::fastrtps::Publisher * request_publisher_;
-  ClientListener * listener_;
+  rmw_fastrtps_shared_cpp::TypeSupport * request_type_support_{nullptr};
+  const void * request_type_support_impl_{nullptr};
+  rmw_fastrtps_shared_cpp::TypeSupport * response_type_support_{nullptr};
+  const void * response_type_support_impl_{nullptr};
+  eprosima::fastrtps::Subscriber * response_subscriber_{nullptr};
+  eprosima::fastrtps::Publisher * request_publisher_{nullptr};
+  ClientListener * listener_{nullptr};
   eprosima::fastrtps::rtps::GUID_t writer_guid_;
-  eprosima::fastrtps::Participant * participant_;
-  const char * typesupport_identifier_;
-  ClientPubListener * pub_listener_;
+  eprosima::fastrtps::rtps::GUID_t reader_guid_;
+  eprosima::fastrtps::Participant * participant_{nullptr};
+  const char * typesupport_identifier_{nullptr};
+  ClientPubListener * pub_listener_{nullptr};
   std::atomic_size_t response_subscriber_matched_count_;
   std::atomic_size_t request_publisher_matched_count_;
 } CustomClientInfo;
@@ -58,6 +61,7 @@ typedef struct CustomClientResponse
 {
   eprosima::fastrtps::rtps::SampleIdentity sample_identity_;
   std::unique_ptr<eprosima::fastcdr::FastBuffer> buffer_;
+  eprosima::fastrtps::SampleInfo_t sample_info_ {};
 } CustomClientResponse;
 
 class ClientListener : public eprosima::fastrtps::SubscriberListener
@@ -76,16 +80,18 @@ public:
     CustomClientResponse response;
     // Todo(sloretz) eliminate heap allocation pending eprosima/Fast-CDR#19
     response.buffer_.reset(new eprosima::fastcdr::FastBuffer());
-    eprosima::fastrtps::SampleInfo_t sinfo;
 
     rmw_fastrtps_shared_cpp::SerializedData data;
     data.is_cdr_buffer = true;
     data.data = response.buffer_.get();
-    if (sub->takeNextData(&data, &sinfo)) {
-      if (eprosima::fastrtps::rtps::ALIVE == sinfo.sampleKind) {
-        response.sample_identity_ = sinfo.related_sample_identity;
+    data.impl = nullptr;    // not used when is_cdr_buffer is true
+    if (sub->takeNextData(&data, &response.sample_info_)) {
+      if (eprosima::fastrtps::rtps::ALIVE == response.sample_info_.sampleKind) {
+        response.sample_identity_ = response.sample_info_.related_sample_identity;
 
-        if (response.sample_identity_.writer_guid() == info_->writer_guid_) {
+        if (response.sample_identity_.writer_guid() == info_->reader_guid_ ||
+          response.sample_identity_.writer_guid() == info_->writer_guid_)
+        {
           std::lock_guard<std::mutex> lock(internalMutex_);
 
           if (conditionMutex_ != nullptr) {

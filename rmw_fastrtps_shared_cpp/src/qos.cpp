@@ -14,21 +14,22 @@
 
 #include <limits>
 
-#include "qos_converter.hpp"
 #include "rmw_fastrtps_shared_cpp/qos.hpp"
 
 #include "fastrtps/attributes/PublisherAttributes.h"
 #include "fastrtps/attributes/SubscriberAttributes.h"
 
 #include "rmw/error_handling.h"
+#include "rmw_dds_common/time_utils.hpp"
 
 static
 eprosima::fastrtps::Duration_t
 rmw_time_to_fastrtps(const rmw_time_t & time)
 {
+  rmw_time_t clamped_time = rmw_dds_common::clamp_rmw_time_to_dds_time(time);
   return eprosima::fastrtps::Duration_t(
-    static_cast<int32_t>(time.sec),
-    static_cast<uint32_t>(time.nsec));
+    static_cast<int32_t>(clamped_time.sec),
+    static_cast<uint32_t>(clamped_time.nsec));
 }
 
 static
@@ -86,14 +87,10 @@ bool fill_entity_qos_from_profile(
       return false;
   }
 
-  if (qos_policies.depth != RMW_QOS_POLICY_DEPTH_SYSTEM_DEFAULT) {
-    history_qos.depth = static_cast<int32_t>(qos_policies.depth);
-  }
-
   // ensure the history depth is at least the requested queue size
   assert(history_qos.depth >= 0);
   if (
-    eprosima::fastrtps::KEEP_LAST_HISTORY_QOS == history_qos.kind &&
+    qos_policies.depth != RMW_QOS_POLICY_DEPTH_SYSTEM_DEFAULT &&
     static_cast<size_t>(history_qos.depth) < qos_policies.depth)
   {
     if (qos_policies.depth > static_cast<size_t>((std::numeric_limits<int32_t>::max)())) {
@@ -115,9 +112,6 @@ bool fill_entity_qos_from_profile(
   switch (qos_policies.liveliness) {
     case RMW_QOS_POLICY_LIVELINESS_AUTOMATIC:
       entity_qos.m_liveliness.kind = eprosima::fastrtps::AUTOMATIC_LIVELINESS_QOS;
-      break;
-    case RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE:
-      entity_qos.m_liveliness.kind = eprosima::fastrtps::MANUAL_BY_PARTICIPANT_LIVELINESS_QOS;
       break;
     case RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC:
       entity_qos.m_liveliness.kind = eprosima::fastrtps::MANUAL_BY_TOPIC_LIVELINESS_QOS;

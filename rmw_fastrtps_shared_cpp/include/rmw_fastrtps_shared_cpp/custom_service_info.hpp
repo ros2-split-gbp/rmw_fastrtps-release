@@ -19,6 +19,8 @@
 #include <condition_variable>
 #include <list>
 #include <mutex>
+#include <unordered_set>
+#include <unordered_map>
 
 #include "fastcdr/FastBuffer.h"
 
@@ -32,28 +34,122 @@
 #include "rcpputils/thread_safety_annotations.hpp"
 
 #include "rmw_fastrtps_shared_cpp/TypeSupport.hpp"
+#include "rmw_fastrtps_shared_cpp/guid_utils.hpp"
 
 class ServiceListener;
+class ServicePubListener;
+
+enum class client_present_t
+{
+  FAILURE,  // an error occurred when checking
+  MAYBE,    // reader not matched, writer still present
+  YES,      // reader matched
+  GONE      // neither reader nor writer
+};
 
 typedef struct CustomServiceInfo
 {
-  rmw_fastrtps_shared_cpp::TypeSupport * request_type_support_;
-  rmw_fastrtps_shared_cpp::TypeSupport * response_type_support_;
-  eprosima::fastrtps::Subscriber * request_subscriber_;
-  eprosima::fastrtps::Publisher * response_publisher_;
-  ServiceListener * listener_;
-  eprosima::fastrtps::Participant * participant_;
-  const char * typesupport_identifier_;
+  rmw_fastrtps_shared_cpp::TypeSupport * request_type_support_{nullptr};
+  const void * request_type_support_impl_{nullptr};
+  rmw_fastrtps_shared_cpp::TypeSupport * response_type_support_{nullptr};
+  const void * response_type_support_impl_{nullptr};
+  eprosima::fastrtps::Subscriber * request_subscriber_{nullptr};
+  eprosima::fastrtps::Publisher * response_publisher_{nullptr};
+  ServiceListener * listener_{nullptr};
+  ServicePubListener * pub_listener_{nullptr};
+  eprosima::fastrtps::Participant * participant_{nullptr};
+  const char * typesupport_identifier_{nullptr};
 } CustomServiceInfo;
 
 typedef struct CustomServiceRequest
 {
   eprosima::fastrtps::rtps::SampleIdentity sample_identity_;
   eprosima::fastcdr::FastBuffer * buffer_;
+  eprosima::fastrtps::SampleInfo_t sample_info_ {};
 
   CustomServiceRequest()
   : buffer_(nullptr) {}
 } CustomServiceRequest;
+
+class ServicePubListener : public eprosima::fastrtps::PublisherListener
+{
+  using subscriptions_set_t =
+    std::unordered_set<eprosima::fastrtps::rtps::GUID_t,
+      rmw_fastrtps_shared_cpp::hash_fastrtps_guid>;
+  using clients_endpoints_map_t =
+    std::unordered_map<eprosima::fastrtps::rtps::GUID_t,
+      eprosima::fastrtps::rtps::GUID_t,
+      rmw_fastrtps_shared_cpp::hash_fastrtps_guid>;
+
+public:
+  ServicePubListener() = default;
+
+  void
+  onPublicationMatched(
+    eprosima::fastrtps::Publisher * pub,
+    eprosima::fastrtps::rtps::MatchingInfo & matchingInfo)
+  {
+    (void) pub;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (eprosima::fastrtps::rtps::MATCHED_MATCHING == matchingInfo.status) {
+      subscriptions_.insert(matchingInfo.remoteEndpointGuid);
+    } else if (eprosima::fastrtps::rtps::REMOVED_MATCHING == matchingInfo.status) {
+      subscriptions_.erase(matchingInfo.remoteEndpointGuid);
+      auto endpoint = clients_endpoints_.find(matchingInfo.remoteEndpointGuid);
+      if (endpoint != clients_endpoints_.end()) {
+        clients_endpoints_.erase(endpoint->second);
+        clients_endpoints_.erase(matchingInfo.remoteEndpointGuid);
+      }
+    } else {
+      return;
+    }
+    cv_.notify_all();
+  }
+
+  template<class Rep, class Period>
+  bool
+  wait_for_subscription(
+    const eprosima::fastrtps::rtps::GUID_t & guid,
+    const std::chrono::duration<Rep, Period> & rel_time)
+  {
+    auto guid_is_present = [this, guid]() RCPPUTILS_TSA_REQUIRES(mutex_)->bool
+    {
+      return subscriptions_.find(guid) != subscriptions_.end();
+    };
+
+    std::unique_lock<std::mutex> lock(mutex_);
+    return cv_.wait_for(lock, rel_time, guid_is_present);
+  }
+
+  client_present_t
+  check_for_subscription(
+    const eprosima::fastrtps::rtps::GUID_t & guid)
+  {
+    // Check if the guid is still in the map
+    if (clients_endpoints_.find(guid) == clients_endpoints_.end()) {
+      // Client is gone
+      return client_present_t::GONE;
+    }
+    // Wait for subscription
+    if (!wait_for_subscription(guid, std::chrono::milliseconds(100))) {
+      return client_present_t::MAYBE;
+    }
+    return client_present_t::YES;
+  }
+
+  // Accesors
+  clients_endpoints_map_t & clients_endpoints()
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return clients_endpoints_;
+  }
+
+private:
+  std::mutex mutex_;
+  subscriptions_set_t subscriptions_ RCPPUTILS_TSA_GUARDED_BY(mutex_);
+  clients_endpoints_map_t clients_endpoints_ RCPPUTILS_TSA_GUARDED_BY(mutex_);
+  std::condition_variable cv_;
+};
 
 class ServiceListener : public eprosima::fastrtps::SubscriberListener
 {
@@ -65,6 +161,21 @@ public:
     (void)info_;
   }
 
+  void
+  onSubscriptionMatched(
+    eprosima::fastrtps::Subscriber * sub,
+    eprosima::fastrtps::rtps::MatchingInfo & matchingInfo)
+  {
+    (void) sub;
+    if (eprosima::fastrtps::rtps::REMOVED_MATCHING == matchingInfo.status) {
+      auto endpoint = info_->pub_listener_->clients_endpoints().find(
+        matchingInfo.remoteEndpointGuid);
+      if (endpoint != info_->pub_listener_->clients_endpoints().end()) {
+        info_->pub_listener_->clients_endpoints().erase(endpoint->second);
+        info_->pub_listener_->clients_endpoints().erase(matchingInfo.remoteEndpointGuid);
+      }
+    }
+  }
 
   void
   onNewDataMessage(eprosima::fastrtps::Subscriber * sub)
@@ -73,14 +184,26 @@ public:
 
     CustomServiceRequest request;
     request.buffer_ = new eprosima::fastcdr::FastBuffer();
-    eprosima::fastrtps::SampleInfo_t sinfo;
 
     rmw_fastrtps_shared_cpp::SerializedData data;
     data.is_cdr_buffer = true;
     data.data = request.buffer_;
-    if (sub->takeNextData(&data, &sinfo)) {
-      if (eprosima::fastrtps::rtps::ALIVE == sinfo.sampleKind) {
-        request.sample_identity_ = sinfo.sample_identity;
+    data.impl = nullptr;    // not used when is_cdr_buffer is true
+    if (sub->takeNextData(&data, &request.sample_info_)) {
+      if (eprosima::fastrtps::rtps::ALIVE == request.sample_info_.sampleKind) {
+        request.sample_identity_ = request.sample_info_.sample_identity;
+        // Use response subscriber guid (on related_sample_identity) when present.
+        const eprosima::fastrtps::rtps::GUID_t & reader_guid =
+          request.sample_info_.related_sample_identity.writer_guid();
+        if (reader_guid != eprosima::fastrtps::rtps::GUID_t::unknown() ) {
+          request.sample_identity_.writer_guid() = reader_guid;
+        }
+
+        // Save both guids in the clients_endpoints map
+        const eprosima::fastrtps::rtps::GUID_t & writer_guid =
+          request.sample_info_.sample_identity.writer_guid();
+        info_->pub_listener_->clients_endpoints().emplace(reader_guid, writer_guid);
+        info_->pub_listener_->clients_endpoints().emplace(writer_guid, reader_guid);
 
         std::lock_guard<std::mutex> lock(internalMutex_);
 

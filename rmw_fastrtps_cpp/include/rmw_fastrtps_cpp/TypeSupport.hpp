@@ -15,8 +15,8 @@
 #ifndef RMW_FASTRTPS_CPP__TYPESUPPORT_HPP_
 #define RMW_FASTRTPS_CPP__TYPESUPPORT_HPP_
 
-#include <rosidl_generator_c/string.h>
-#include <rosidl_generator_c/string_functions.h>
+#include <rosidl_runtime_c/string.h>
+#include <rosidl_runtime_c/string_functions.h>
 
 #include <fastrtps/TopicDataType.h>
 
@@ -35,11 +35,13 @@ namespace rmw_fastrtps_cpp
 class TypeSupport : public rmw_fastrtps_shared_cpp::TypeSupport
 {
 public:
-  size_t getEstimatedSerializedSize(const void * ros_message);
+  size_t getEstimatedSerializedSize(const void * ros_message, const void * impl) const override;
 
-  bool serializeROSmessage(const void * ros_message, eprosima::fastcdr::Cdr & ser);
+  bool serializeROSmessage(
+    const void * ros_message, eprosima::fastcdr::Cdr & ser, const void * impl) const override;
 
-  bool deserializeROSmessage(eprosima::fastcdr::Cdr & deser, void * ros_message);
+  bool deserializeROSmessage(
+    eprosima::fastcdr::Cdr & deser, void * ros_message, const void * impl) const override;
 
 protected:
   TypeSupport();

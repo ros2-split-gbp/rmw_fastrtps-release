@@ -14,6 +14,8 @@
 
 #include "fastrtps/subscriber/Subscriber.h"
 
+#include "rcutils/macros.h"
+
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
@@ -90,6 +92,7 @@ namespace rmw_fastrtps_shared_cpp
 {
 rmw_ret_t
 __rmw_wait(
+  const char * identifier,
   rmw_subscriptions_t * subscriptions,
   rmw_guard_conditions_t * guard_conditions,
   rmw_services_t * services,
@@ -98,25 +101,24 @@ __rmw_wait(
   rmw_wait_set_t * wait_set,
   const rmw_time_t * wait_timeout)
 {
-  if (!wait_set) {
-    RMW_SET_ERROR_MSG("wait set handle is null");
-    return RMW_RET_ERROR;
-  }
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
+
+  RMW_CHECK_ARGUMENT_FOR_NULL(wait_set, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
+    wait set handle,
+    wait_set->implementation_identifier, identifier,
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION)
+
+  // If wait_set_info is ever nullptr, it can only mean one of three things:
+  // - Wait set is invalid. Caller did not respect preconditions.
+  // - Implementation is logically broken. Definitely not something we want to treat as a normal
+  // error.
+  // - Heap is corrupt.
+  // In all three cases, it's better if this crashes soon enough.
   CustomWaitsetInfo * wait_set_info = static_cast<CustomWaitsetInfo *>(wait_set->data);
-  if (!wait_set_info) {
-    RMW_SET_ERROR_MSG("Waitset info struct is null");
-    return RMW_RET_ERROR;
-  }
   std::mutex * conditionMutex = &wait_set_info->condition_mutex;
   std::condition_variable * conditionVariable = &wait_set_info->condition;
-  if (!conditionMutex) {
-    RMW_SET_ERROR_MSG("Mutex for wait set was null");
-    return RMW_RET_ERROR;
-  }
-  if (!conditionVariable) {
-    RMW_SET_ERROR_MSG("Condition variable for wait set was null");
-    return RMW_RET_ERROR;
-  }
 
   if (subscriptions) {
     for (size_t i = 0; i < subscriptions->subscriber_count; ++i) {
