@@ -60,7 +60,7 @@ All pull requests must resolve related documentation changes before merging.
 ### Feature Documentation [3.i]
 
 Some of the `rmw_fastrtps_shared_cpp` features are documented on the repository level [README](../README.md).
-Much of Fast RTPS itself has feature documentation [hosted publicly](https://fast-rtps.docs.eprosima.com/en/latest).
+Much of Fast DDS itself has feature documentation [hosted publicly](https://fast-dds.docs.eprosima.com/en/latest/).
 
 ### Public API Documentation [3.ii]
 
@@ -86,12 +86,18 @@ The results of the test can be found [here](https://ci.ros2.org/view/nightly/job
 
 ### Feature Testing [4.i]
 
-Many of the features have testing in `rmw_fastrtps_shared_cpp`. Since `rmw_fastrtps_shared_cpp` supports `rmw_fastrtps_cpp` and `rmw_fastrtps_dynamic_cpp`, integration and system tests for ROS middlewares up the stack, such as those found in [`test_rclcpp`](https://github.com/ros2/system_tests/tree/foxy/test_rclcpp) and [`test_communication`](https://github.com/ros2/system_tests/tree/foxy/test_communication) packages, provide coverage.
+All `rmw_fastrtps_shared_cpp` public features support ROS middleware feature implementations in `rmw_fastrtps_cpp` and `rmw_fastrtps_dynamic_cpp`.
+
+Unit, integration, and system tests for ROS middlewares higher up in the stack, such as those found in [`test_rmw_implementation`](https://github.com/ros2/rmw_implementation/tree/master/test_rmw_implementation), [`test_rclcpp`](https://github.com/ros2/system_tests/tree/master/test_rclcpp), and [`test_communication`](https://github.com/ros2/system_tests/tree/master/test_communication) packages, provide coverage.
 
 ### Public API Testing [4.ii]
 
-Many parts of the public API have testing in `rmw_fastrtps_shared_cpp`.
-The latest nightly test results can be seen [here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rmw_fastrtps_shared_cpp/).
+All `rmw_fastrtps_shared_cpp` public API supports API implementations in  in `rmw_fastrtps_cpp` and `rmw_fastrtps_dynamic_cpp`. 
+
+Unit tests for many parts of this API provide coverage, and they are located in the [`test`](https://github.com/ros2/rmw_fastrtps/tree/master/rmw_fastrtps_shared_cpp/test) directory.
+New additions or changes to this API require tests before being added.
+
+Unit, integration, and system tests for `rmw_fastrtps_cpp` and `rmw_fastrtps_dynamic_cpp` higher up in the stack, such as those found in [`test_rmw_implementation`](https://github.com/ros2/rmw_implementation/tree/master/test_rmw_implementation), [`test_rclcpp`](https://github.com/ros2/system_tests/tree/master/test_rclcpp), and [`test_communication`](https://github.com/ros2/system_tests/tree/master/test_communication) packages, further extend coverage.
 
 ### Coverage [4.iii]
 
@@ -105,12 +111,14 @@ This includes:
 
 Changes are required to make a best effort to keep or increase coverage before being accepted, but decreases are allowed if properly justified and accepted by reviewers.
 
-Current coverage statistics can be viewed
-[here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/install_rmw_fastrtps_shared_cpp_include_rmw_fastrtps_shared_cpp/),
-[here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_fastrtps_rmw_fastrtps_shared_cpp_include_rmw_fastrtps_shared_cpp/),
-[here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_fastrtps_rmw_fastrtps_shared_cpp_src/), and
+Current coverage statistics can be viewed 
+[here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/install_rmw_fastrtps_shared_cpp_include_rmw_fastrtps_shared_cpp/), 
+[here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_fastrtps_rmw_fastrtps_shared_cpp_include_rmw_fastrtps_shared_cpp/), 
+[here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_fastrtps_rmw_fastrtps_shared_cpp_src/), and 
 [here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_fastrtps_rmw_fastrtps_shared_cpp_src_types/).
-This package does not yet meet the 95% coverage guideline.
+
+This package claims to meet the coverage requirements for the current quality level, even though it doesn't have 95% line coverage.
+The justification is that the only uncovered lines have to do with system resource exhaustion and Fast DDS internal failure.
 
 A summary of how these statistics are calculated can be found in the [ROS 2 On-boarding guide](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
 
@@ -129,11 +137,11 @@ Results of the nightly linter tests can be found [here](https://ci.ros2.org/view
 ### Direct Runtime ROS Dependencies [5.i]/[5.ii]
 
 `rmw_fastrtps_shared_cpp` has the following runtime ROS dependencies:
-* `fastrtps_cmake_module`
-* `rcutils`
-* `rcpputils`
-* `rmw`
-* `rmw_dds_common`
+* `fastrtps_cmake_module`: [QUALITY DECLARATION](https://github.com/ros2/rosidl_typesupport_fastrtps/blob/master/fastrtps_cmake_module/QUALITY_DECLARATION.md)
+* `rcutils`: [QUALITY DECLARATION](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md)
+* `rcpputils`: [QUALITY DECLARATION](https://github.com/ros2/rcpputils/blob/master/QUALITY_DECLARATION.md)
+* `rmw`: [QUALITY DECLARATION](https://github.com/ros2/rmw/blob/master/rmw/QUALITY_DECLARATION.md)
+* `rmw_dds_common`: [QUALITY DECLARATION](https://github.com/ros2/rmw_dds_common/blob/master/rmw_dds_common/QUALITY_DECLARATION.md)
 
 It has several "buildtool" dependencies, which do not affect the resulting quality of the package, because they do not contribute to the public library API.
 It also has several test dependencies, which do not affect the resulting quality of the package, because they are only used to build and run the test code.
@@ -141,8 +149,8 @@ It also has several test dependencies, which do not affect the resulting quality
 ### Direct Runtime Non-ROS Dependencies [5.iii]
 
 `rmw_fastrtps_shared_cpp` has the following runtime non-ROS dependencies.
-* `fastcdr`: [QUALITY DECLARATION](https://github.com/eProsima/Fast-CDR/blob/master/QUALITY.md)
-* `fastrtps`: [QUALITY DECLARATION](https://github.com/eProsima/Fast-DDS/blob/2.0.x/QUALITY.md)
+* `fastcdr`: *eProsima Fast CDR* claims to be Quality Level 2. For more information, please refer to its [QUALITY DECLARATION](https://github.com/eProsima/Fast-CDR/blob/master/QUALITY.md)
+* `fastrtps`: *eProsima Fast DDS* claims to be Quality Level 2. For more information, please refer to its [QUALITY DECLARATION](https://github.com/eProsima/Fast-DDS/blob/master/QUALITY.md)
 
 ## Platform Support [6]
 
