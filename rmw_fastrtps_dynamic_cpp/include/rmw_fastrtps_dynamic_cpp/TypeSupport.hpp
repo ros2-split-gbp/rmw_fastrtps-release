@@ -100,7 +100,7 @@ struct StringHelper<rosidl_typesupport_introspection_c__MessageMembers>
     return std::string(data.data);
   }
 
-  static void assign(eprosima::fastcdr::Cdr & deser, void * field)
+  static void assign(eprosima::fastcdr::Cdr & deser, void * field, bool)
   {
     std::string str;
     deser >> str;
@@ -120,9 +120,12 @@ struct StringHelper<rosidl_typesupport_introspection_cpp::MessageMembers>
     return *(static_cast<std::string *>(data));
   }
 
-  static void assign(eprosima::fastcdr::Cdr & deser, void * field)
+  static void assign(eprosima::fastcdr::Cdr & deser, void * field, bool call_new)
   {
     std::string & str = *(std::string *)field;
+    if (call_new) {
+      new(&str) std::string;
+    }
     deser >> str;
   }
 };
@@ -192,7 +195,8 @@ private:
   bool deserializeROSmessage(
     eprosima::fastcdr::Cdr & deser,
     const MembersType * members,
-    void * ros_message) const;
+    void * ros_message,
+    bool call_new) const;
 };
 
 }  // namespace rmw_fastrtps_dynamic_cpp

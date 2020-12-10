@@ -42,13 +42,6 @@ using rmw_dds_common::operator<<;
 
 class ParticipantListener;
 
-enum class publishing_mode_t
-{
-  ASYNCHRONOUS,  // Asynchronous publishing mode
-  SYNCHRONOUS,   // Synchronous publishing mode
-  AUTO           // Use publishing mode set in XML file or Fast DDS default
-};
-
 typedef struct CustomParticipantInfo
 {
   eprosima::fastrtps::Participant * participant;
@@ -60,7 +53,6 @@ typedef struct CustomParticipantInfo
   // their settings are going to be overwritten by code
   // with the default configuration.
   bool leave_middleware_default_qos;
-  publishing_mode_t publishing_mode;
 } CustomParticipantInfo;
 
 class ParticipantListener : public eprosima::fastrtps::ParticipantListener
