@@ -12,20 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rmw/rmw.h"
 #include "rmw/error_handling.h"
+#include "rmw/rmw.h"
 #include "rmw/types.h"
-
+#include "rmw/get_network_flow_endpoints.h"
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
-
-#include "rmw_fastrtps_cpp/identifier.hpp"
 
 extern "C"
 {
 rmw_ret_t
-rmw_compare_gids_equal(const rmw_gid_t * gid1, const rmw_gid_t * gid2, bool * result)
+rmw_publisher_get_network_flow_endpoints(
+  const rmw_publisher_t * publisher,
+  rcutils_allocator_t * allocator,
+  rmw_network_flow_endpoint_array_t * network_flow_endpoint_array)
 {
-  return rmw_fastrtps_shared_cpp::__rmw_compare_gids_equal(
-    eprosima_fastrtps_identifier, gid1, gid2, result);
+  return rmw_fastrtps_shared_cpp::__rmw_publisher_get_network_flow_endpoints(
+    publisher,
+    allocator,
+    network_flow_endpoint_array);
+}
+
+rmw_ret_t
+rmw_subscription_get_network_flow_endpoints(
+  const rmw_subscription_t * subscription,
+  rcutils_allocator_t * allocator,
+  rmw_network_flow_endpoint_array_t * network_flow_endpoint_array)
+{
+  return rmw_fastrtps_shared_cpp::__rmw_subscription_get_network_flow_endpoints(
+    subscription,
+    allocator,
+    network_flow_endpoint_array);
 }
 }  // extern "C"
