@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fastcdr/exceptions/Exception.h>
-
 #include <string>
 
 #include "rmw/error_handling.h"
@@ -90,26 +88,19 @@ bool TypeSupport::deserializeROSmessage(
   assert(ros_message);
   assert(impl);
 
-  try {
-    // Deserialize encapsulation.
-    deser.read_encapsulation();
+  // Deserialize encapsulation.
+  deser.read_encapsulation();
 
-    // If type is not empty, deserialize message
-    if (has_data_) {
-      auto callbacks = static_cast<const message_type_support_callbacks_t *>(impl);
-      return callbacks->cdr_deserialize(deser, ros_message);
-    }
-
-    // Otherwise, consume dummy byte
-    uint8_t dump = 0;
-    deser >> dump;
-    (void)dump;
-  } catch (const eprosima::fastcdr::exception::Exception &) {
-    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "Fast CDR exception deserializing message of type %s.",
-      getName());
-    return false;
+  // If type is not empty, deserialize message
+  if (has_data_) {
+    auto callbacks = static_cast<const message_type_support_callbacks_t *>(impl);
+    return callbacks->cdr_deserialize(deser, ros_message);
   }
+
+  // Otherwise, consume dummy byte
+  uint8_t dump = 0;
+  deser >> dump;
+  (void)dump;
 
   return true;
 }

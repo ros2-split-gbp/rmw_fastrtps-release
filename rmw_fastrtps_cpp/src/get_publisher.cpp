@@ -20,8 +20,8 @@
 namespace rmw_fastrtps_cpp
 {
 
-eprosima::fastdds::dds::DataWriter *
-get_datawriter(rmw_publisher_t * publisher)
+eprosima::fastrtps::Publisher *
+get_publisher(rmw_publisher_t * publisher)
 {
   if (!publisher) {
     return nullptr;
@@ -30,7 +30,7 @@ get_datawriter(rmw_publisher_t * publisher)
     return nullptr;
   }
   auto impl = static_cast<CustomPublisherInfo *>(publisher->data);
-  return impl->data_writer_;
+  return impl->publisher_;
 }
 
 }  // namespace rmw_fastrtps_cpp

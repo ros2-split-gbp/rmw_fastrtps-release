@@ -20,8 +20,8 @@
 namespace rmw_fastrtps_cpp
 {
 
-eprosima::fastdds::dds::DataReader *
-get_datareader(rmw_subscription_t * subscription)
+eprosima::fastrtps::Subscriber *
+get_subscriber(rmw_subscription_t * subscription)
 {
   if (!subscription) {
     return nullptr;
@@ -30,7 +30,7 @@ get_datareader(rmw_subscription_t * subscription)
     return nullptr;
   }
   auto impl = static_cast<CustomSubscriberInfo *>(subscription->data);
-  return impl->data_reader_;
+  return impl->subscriber_;
 }
 
 }  // namespace rmw_fastrtps_cpp

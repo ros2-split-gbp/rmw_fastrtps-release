@@ -33,10 +33,6 @@ __rmw_publish(
   const void * ros_message,
   rmw_publisher_allocation_t * allocation)
 {
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RMW_RET_INVALID_ARGUMENT);
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RMW_RET_ERROR);
-
   (void) allocation;
   RMW_CHECK_FOR_NULL_WITH_MSG(
     publisher, "publisher handle is null",
@@ -55,7 +51,7 @@ __rmw_publish(
   data.is_cdr_buffer = false;
   data.data = const_cast<void *>(ros_message);
   data.impl = info->type_support_impl_;
-  if (!info->data_writer_->write(&data)) {
+  if (!info->publisher_->write(&data)) {
     RMW_SET_ERROR_MSG("cannot publish data");
     return RMW_RET_ERROR;
   }
@@ -70,10 +66,6 @@ __rmw_publish_serialized_message(
   const rmw_serialized_message_t * serialized_message,
   rmw_publisher_allocation_t * allocation)
 {
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RMW_RET_INVALID_ARGUMENT);
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RMW_RET_ERROR);
-
   (void) allocation;
   RMW_CHECK_FOR_NULL_WITH_MSG(
     publisher, "publisher handle is null",
@@ -101,7 +93,7 @@ __rmw_publish_serialized_message(
   data.is_cdr_buffer = true;
   data.data = &ser;
   data.impl = nullptr;    // not used when is_cdr_buffer is true
-  if (!info->data_writer_->write(&data)) {
+  if (!info->publisher_->write(&data)) {
     RMW_SET_ERROR_MSG("cannot publish data");
     return RMW_RET_ERROR;
   }
