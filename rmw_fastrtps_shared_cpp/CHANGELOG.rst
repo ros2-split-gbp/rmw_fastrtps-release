@@ -2,36 +2,11 @@
 Changelog for package rmw_fastrtps_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-5.2.2 (2021-08-09)
+5.0.1 (2021-08-18)
 ------------------
-* Pass the CRL down to Fast-DDS if available. (`#546 <https://github.com/ros2/rmw_fastrtps/issues/546>`_)
-* Contributors: Chris Lalancette
-
-5.2.1 (2021-06-30)
-------------------
-* Use the new rmw_dds_common::get_security_files (`#544 <https://github.com/ros2/rmw_fastrtps/issues/544>`_)
-* Support for SubscriptionOptions::ignore_local_publications (`#536 <https://github.com/ros2/rmw_fastrtps/issues/536>`_)
-* Change links from index.ros.org -> docs.ros.org (`#539 <https://github.com/ros2/rmw_fastrtps/issues/539>`_)
-* Contributors: Chris Lalancette, Jose Antonio Moral
-
-5.2.0 (2021-06-04)
-------------------
-* Add rmw_publisher_wait_for_all_acked support. (`#519 <https://github.com/ros2/rmw_fastrtps/issues/519>`_)
-* Contributors: Barry Xu
-
-5.1.0 (2021-05-12)
-------------------
-* Loan messages implementation (`#523 <https://github.com/ros2/rmw_fastrtps/issues/523>`_)
-  * Added is_plain\_ attribute to base TypeSupport.
-  * Added new methods to base TypeSupport.
-  * Implementation of rmw_borrow_loaned_message.
-  * Implementation of rmw_return_loaned_message_from_publisher.
-  * Enable loan messages on publishers of plain types.
-  * Implementation for taking loaned messages.
-  * Enable loan messages on subscriptions of plain types.
-* Export rmw_dds_common as an rmw_fastrtps_shared_cpp dependency (`#530 <https://github.com/ros2/rmw_fastrtps/issues/530>`_)
-* Update includes after rcutils/get_env.h deprecation (`#529 <https://github.com/ros2/rmw_fastrtps/issues/529>`_)
-* Contributors: Christophe Bedard, Michel Hidalgo, Miguel Company
+* [Galactic] Loan messages implementation (`#547 <https://github.com/ros2/rmw_fastrtps/issues/547>`_)
+* Support for SubscriptionOptions::ignore_local_publications (`#536 <https://github.com/ros2/rmw_fastrtps/issues/536>`_) (`#549 <https://github.com/ros2/rmw_fastrtps/issues/549>`_)
+* Contributors: Michel Hidalgo, Miguel Company
 
 5.0.0 (2021-04-06)
 ------------------

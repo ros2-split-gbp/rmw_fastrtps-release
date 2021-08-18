@@ -2,30 +2,9 @@
 Changelog for package rmw_fastrtps_dynamic_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-5.2.2 (2021-08-09)
+5.0.1 (2021-08-18)
 ------------------
-* Correctly recalculate serialized size on bounded sequences. (`#540 <https://github.com/ros2/rmw_fastrtps/issues/540>`_)
-* Fix type size alignment. (`#550 <https://github.com/ros2/rmw_fastrtps/issues/550>`_)
-* Contributors: Miguel Company
-
-5.2.1 (2021-06-30)
-------------------
-
-5.2.0 (2021-06-04)
-------------------
-* Add rmw_publisher_wait_for_all_acked support. (`#519 <https://github.com/ros2/rmw_fastrtps/issues/519>`_)
-* Contributors: Barry Xu
-
-5.1.0 (2021-05-12)
-------------------
-* Loan messages implementation (`#523 <https://github.com/ros2/rmw_fastrtps/issues/523>`_)
-  * Added is_plain\_ attribute to base TypeSupport.
-  * Added new methods to base TypeSupport.
-  * Implementation of rmw_borrow_loaned_message.
-  * Implementation of rmw_return_loaned_message_from_publisher.
-  * Enable loan messages on publishers of plain types.
-  * Implementation for taking loaned messages.
-  * Enable loan messages on subscriptions of plain types.
+* [Galactic] Loan messages implementation (`#547 <https://github.com/ros2/rmw_fastrtps/issues/547>`_)
 * Contributors: Miguel Company
 
 5.0.0 (2021-04-06)
