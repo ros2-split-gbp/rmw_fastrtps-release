@@ -15,13 +15,13 @@
 #ifndef RMW_FASTRTPS_DYNAMIC_CPP__MESSAGETYPESUPPORT_IMPL_HPP_
 #define RMW_FASTRTPS_DYNAMIC_CPP__MESSAGETYPESUPPORT_IMPL_HPP_
 
+#include <fastcdr/FastBuffer.h>
+#include <fastcdr/Cdr.h>
+
 #include <cassert>
 #include <memory>
 #include <sstream>
 #include <string>
-
-#include "fastcdr/FastBuffer.h"
-#include "fastcdr/Cdr.h"
 
 #include "rcpputils/find_and_replace.hpp"
 
@@ -59,8 +59,6 @@ MessageTypeSupport<MembersType>::MessageTypeSupport(
   } else {
     this->m_typeSize++;
   }
-  // Account for RTPS submessage alignment
-  this->m_typeSize = (this->m_typeSize + 3) & ~3;
 }
 
 }  // namespace rmw_fastrtps_dynamic_cpp

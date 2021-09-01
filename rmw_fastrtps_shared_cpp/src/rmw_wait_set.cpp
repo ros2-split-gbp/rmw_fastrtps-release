@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rcutils/macros.h"
-
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
@@ -28,7 +26,6 @@ namespace rmw_fastrtps_shared_cpp
 rmw_wait_set_t *
 __rmw_create_wait_set(const char * identifier, rmw_context_t * context, size_t max_conditions)
 {
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(nullptr);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(context, NULL);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     init context,
@@ -99,8 +96,6 @@ __rmw_destroy_wait_set(const char * identifier, rmw_wait_set_t * wait_set)
     rmw_free(wait_set->data);
   }
   rmw_wait_set_free(wait_set);
-
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RMW_RET_ERROR);  // on completion
   return result;
 }
 }  // namespace rmw_fastrtps_shared_cpp

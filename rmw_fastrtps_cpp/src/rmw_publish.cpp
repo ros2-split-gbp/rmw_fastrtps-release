@@ -51,7 +51,11 @@ rmw_publish_loaned_message(
   void * ros_message,
   rmw_publisher_allocation_t * allocation)
 {
-  return rmw_fastrtps_shared_cpp::__rmw_publish_loaned_message(
-    eprosima_fastrtps_identifier, publisher, ros_message, allocation);
+  (void) publisher;
+  (void) ros_message;
+  (void) allocation;
+
+  RMW_SET_ERROR_MSG("rmw_publish_loaned_message not implemented for rmw_fastrtps_cpp");
+  return RMW_RET_UNSUPPORTED;
 }
 }  // extern "C"
