@@ -17,44 +17,57 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <set>
 #include <utility>
 
-#include "fastrtps/subscriber/Subscriber.h"
-#include "fastrtps/subscriber/SubscriberListener.h"
+#include "fastdds/dds/core/status/DeadlineMissedStatus.hpp"
+#include "fastdds/dds/core/status/LivelinessChangedStatus.hpp"
+#include "fastdds/dds/core/status/SubscriptionMatchedStatus.hpp"
+#include "fastdds/dds/subscriber/DataReader.hpp"
+#include "fastdds/dds/subscriber/DataReaderListener.hpp"
+#include "fastdds/dds/topic/TypeSupport.hpp"
+
+#include "fastdds/rtps/common/Guid.h"
+#include "fastdds/rtps/common/InstanceHandle.h"
 
 #include "rcpputils/thread_safety_annotations.hpp"
 
 #include "rmw/impl/cpp/macros.hpp"
 
-#include "rmw_fastrtps_shared_cpp/TypeSupport.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_event_info.hpp"
 
 
 class SubListener;
 
+namespace rmw_fastrtps_shared_cpp
+{
+struct LoanManager;
+}  // namespace rmw_fastrtps_shared_cpp
+
 struct CustomSubscriberInfo : public CustomEventInfo
 {
   virtual ~CustomSubscriberInfo() = default;
 
-  eprosima::fastrtps::Subscriber * subscriber_{nullptr};
+  eprosima::fastdds::dds::DataReader * data_reader_ {nullptr};
   SubListener * listener_{nullptr};
-  rmw_fastrtps_shared_cpp::TypeSupport * type_support_{nullptr};
+  eprosima::fastdds::dds::TypeSupport type_support_;
   const void * type_support_impl_{nullptr};
   rmw_gid_t subscription_gid_{};
   const char * typesupport_identifier_{nullptr};
+  std::shared_ptr<rmw_fastrtps_shared_cpp::LoanManager> loan_manager_;
 
   RMW_FASTRTPS_SHARED_CPP_PUBLIC
   EventListenerInterface *
   getListener() const final;
 };
 
-class SubListener : public EventListenerInterface, public eprosima::fastrtps::SubscriberListener
+class SubListener : public EventListenerInterface, public eprosima::fastdds::dds::DataReaderListener
 {
 public:
   explicit SubListener(CustomSubscriberInfo * info)
-  : data_(0),
+  : data_(false),
     deadline_changes_(false),
     liveliness_changes_(false),
     conditionMutex_(nullptr),
@@ -64,38 +77,39 @@ public:
     (void)info;
   }
 
-  // SubscriberListener implementation
+  // DataReaderListener implementation
   void
-  onSubscriptionMatched(
-    eprosima::fastrtps::Subscriber * sub, eprosima::fastrtps::rtps::MatchingInfo & info) final
+  on_subscription_matched(
+    eprosima::fastdds::dds::DataReader * reader,
+    const eprosima::fastdds::dds::SubscriptionMatchedStatus & info) final
   {
     {
       std::lock_guard<std::mutex> lock(internalMutex_);
-      if (eprosima::fastrtps::rtps::MATCHED_MATCHING == info.status) {
-        publishers_.insert(info.remoteEndpointGuid);
-      } else if (eprosima::fastrtps::rtps::REMOVED_MATCHING == info.status) {
-        publishers_.erase(info.remoteEndpointGuid);
+      if (info.current_count_change == 1) {
+        publishers_.insert(eprosima::fastrtps::rtps::iHandle2GUID(info.last_publication_handle));
+      } else if (info.current_count_change == -1) {
+        publishers_.erase(eprosima::fastrtps::rtps::iHandle2GUID(info.last_publication_handle));
       }
     }
-    data_taken(sub);
+    update_has_data(reader);
   }
 
   void
-  onNewDataMessage(eprosima::fastrtps::Subscriber * sub) final
+  on_data_available(eprosima::fastdds::dds::DataReader * reader) final
   {
-    data_taken(sub);
+    update_has_data(reader);
   }
 
   RMW_FASTRTPS_SHARED_CPP_PUBLIC
   void
   on_requested_deadline_missed(
-    eprosima::fastrtps::Subscriber *,
+    eprosima::fastdds::dds::DataReader *,
     const eprosima::fastrtps::RequestedDeadlineMissedStatus &) final;
 
   RMW_FASTRTPS_SHARED_CPP_PUBLIC
   void
   on_liveliness_changed(
-    eprosima::fastrtps::Subscriber *,
+    eprosima::fastdds::dds::DataReader *,
     const eprosima::fastrtps::LivelinessChangedStatus &) final;
 
   // EventListenerInterface implementation
@@ -127,23 +141,20 @@ public:
   bool
   hasData() const
   {
-    return data_.load(std::memory_order_relaxed) > 0;
+    return data_.load(std::memory_order_relaxed);
   }
 
   void
-  data_taken(eprosima::fastrtps::Subscriber * sub)
+  update_has_data(eprosima::fastdds::dds::DataReader * reader)
   {
-    // Make sure to call into Fast-RTPS before taking the lock to avoid an
-    // ABBA deadlock between internalMutex_ and mutexes inside of Fast-RTPS.
-#if FASTRTPS_VERSION_MAJOR == 1 && FASTRTPS_VERSION_MINOR < 9
-    uint64_t unread_count = sub->getUnreadCount();
-#else
-    uint64_t unread_count = sub->get_unread_count();
-#endif
+    // Make sure to call into Fast DDS before taking the lock to avoid an
+    // ABBA deadlock between internalMutex_ and mutexes inside of Fast DDS.
+    auto unread_count = reader->get_unread_count();
+    bool has_data = unread_count > 0;
 
     std::lock_guard<std::mutex> lock(internalMutex_);
     ConditionalScopedLock clock(conditionMutex_, conditionVariable_);
-    data_.store(unread_count, std::memory_order_relaxed);
+    data_.store(has_data, std::memory_order_relaxed);
   }
 
   size_t publisherCount()
@@ -155,14 +166,14 @@ public:
 private:
   mutable std::mutex internalMutex_;
 
-  std::atomic_size_t data_;
+  std::atomic_bool data_;
 
   std::atomic_bool deadline_changes_;
-  eprosima::fastrtps::RequestedDeadlineMissedStatus requested_deadline_missed_status_
+  eprosima::fastdds::dds::RequestedDeadlineMissedStatus requested_deadline_missed_status_
     RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
 
   std::atomic_bool liveliness_changes_;
-  eprosima::fastrtps::LivelinessChangedStatus liveliness_changed_status_
+  eprosima::fastdds::dds::LivelinessChangedStatus liveliness_changed_status_
     RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
 
   std::mutex * conditionMutex_ RCPPUTILS_TSA_GUARDED_BY(internalMutex_);

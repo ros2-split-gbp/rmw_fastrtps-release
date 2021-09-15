@@ -15,11 +15,12 @@
 #ifndef RMW_FASTRTPS_DYNAMIC_CPP__SERVICETYPESUPPORT_IMPL_HPP_
 #define RMW_FASTRTPS_DYNAMIC_CPP__SERVICETYPESUPPORT_IMPL_HPP_
 
-#include <fastcdr/FastBuffer.h>
-#include <fastcdr/Cdr.h>
 #include <cassert>
 #include <sstream>
 #include <string>
+
+#include "fastcdr/FastBuffer.h"
+#include "fastcdr/Cdr.h"
 
 #include "rcpputils/find_and_replace.hpp"
 
@@ -48,8 +49,9 @@ RequestTypeSupport<ServiceMembersType, MessageMembersType>::RequestTypeSupport(
   ss << "dds_::" << service_name << "_Request_";
   this->setName(ss.str().c_str());
 
-  // Fully bound by default
+  // Fully bound and plain by default
   this->max_size_bound_ = true;
+  this->is_plain_ = true;
   // Encapsulation size
   this->m_typeSize = 4;
   if (this->members_->member_count_ != 0) {
@@ -57,6 +59,8 @@ RequestTypeSupport<ServiceMembersType, MessageMembersType>::RequestTypeSupport(
   } else {
     this->m_typeSize++;
   }
+  // Account for RTPS submessage alignment
+  this->m_typeSize = (this->m_typeSize + 3) & ~3;
 }
 
 template<typename ServiceMembersType, typename MessageMembersType>
@@ -78,8 +82,9 @@ ResponseTypeSupport<ServiceMembersType, MessageMembersType>::ResponseTypeSupport
   ss << "dds_::" << service_name << "_Response_";
   this->setName(ss.str().c_str());
 
-  // Fully bound by default
+  // Fully bound and plain by default
   this->max_size_bound_ = true;
+  this->is_plain_ = true;
   // Encapsulation size
   this->m_typeSize = 4;
   if (this->members_->member_count_ != 0) {
@@ -87,6 +92,8 @@ ResponseTypeSupport<ServiceMembersType, MessageMembersType>::ResponseTypeSupport
   } else {
     this->m_typeSize++;
   }
+  // Account for RTPS submessage alignment
+  this->m_typeSize = (this->m_typeSize + 3) & ~3;
 }
 
 }  // namespace rmw_fastrtps_dynamic_cpp

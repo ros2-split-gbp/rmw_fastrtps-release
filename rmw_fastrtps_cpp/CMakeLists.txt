@@ -38,8 +38,8 @@ find_package(rmw_fastrtps_shared_cpp REQUIRED)
 
 find_package(fastrtps_cmake_module REQUIRED)
 find_package(fastcdr REQUIRED CONFIG)
-find_package(fastrtps REQUIRED CONFIG)
-find_package(FastRTPS REQUIRED MODULE)
+find_package(fastrtps 2.3 REQUIRED CONFIG)
+find_package(FastRTPS 2.3 REQUIRED MODULE)
 
 find_package(rmw REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
@@ -73,6 +73,7 @@ add_library(rmw_fastrtps_cpp
   src/rmw_node_names.cpp
   src/rmw_publish.cpp
   src/rmw_publisher.cpp
+  src/rmw_qos.cpp
   src/rmw_request.cpp
   src/rmw_response.cpp
   src/rmw_serialize.cpp
@@ -88,6 +89,7 @@ add_library(rmw_fastrtps_cpp
   src/serialization_format.cpp
   src/subscription.cpp
   src/type_support_common.cpp
+  src/rmw_get_endpoint_network_flow.cpp
 )
 target_link_libraries(rmw_fastrtps_cpp
   fastcdr fastrtps)

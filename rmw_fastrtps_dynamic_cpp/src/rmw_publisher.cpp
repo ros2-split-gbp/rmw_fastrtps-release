@@ -148,6 +148,13 @@ rmw_publisher_assert_liveliness(const rmw_publisher_t * publisher)
 }
 
 rmw_ret_t
+rmw_publisher_wait_for_all_acked(const rmw_publisher_t * publisher, rmw_time_t wait_timeout)
+{
+  return rmw_fastrtps_shared_cpp::__rmw_publisher_wait_for_all_acked(
+    eprosima_fastrtps_identifier, publisher, wait_timeout);
+}
+
+rmw_ret_t
 rmw_publisher_get_actual_qos(
   const rmw_publisher_t * publisher,
   rmw_qos_profile_t * qos)
@@ -170,12 +177,8 @@ rmw_borrow_loaned_message(
   const rosidl_message_type_support_t * type_support,
   void ** ros_message)
 {
-  (void) publisher;
-  (void) type_support;
-  (void) ros_message;
-
-  RMW_SET_ERROR_MSG("rmw_borrow_loaned_message is not implemented for rmw_fastrtps_dynamic_cpp");
-  return RMW_RET_UNSUPPORTED;
+  return rmw_fastrtps_shared_cpp::__rmw_borrow_loaned_message(
+    eprosima_fastrtps_identifier, publisher, type_support, ros_message);
 }
 
 rmw_ret_t
@@ -183,12 +186,8 @@ rmw_return_loaned_message_from_publisher(
   const rmw_publisher_t * publisher,
   void * loaned_message)
 {
-  (void) publisher;
-  (void) loaned_message;
-
-  RMW_SET_ERROR_MSG(
-    "rmw_return_loaned_message_from_publisher is not implemented for rmw_fastrtps_dynamic_cpp");
-  return RMW_RET_UNSUPPORTED;
+  return rmw_fastrtps_shared_cpp::__rmw_return_loaned_message_from_publisher(
+    eprosima_fastrtps_identifier, publisher, loaned_message);
 }
 
 using BaseTypeSupport = rmw_fastrtps_dynamic_cpp::BaseTypeSupport;
