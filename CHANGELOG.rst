@@ -2,6 +2,11 @@
 Changelog for package rmw_fastrtps_dynamic_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.1.0 (2021-11-19)
+------------------
+* Add client/service QoS getters. (`#560 <https://github.com/ros2/rmw_fastrtps/issues/560>`_)
+* Contributors: mauropasse
+
 6.0.0 (2021-09-15)
 ------------------
 
