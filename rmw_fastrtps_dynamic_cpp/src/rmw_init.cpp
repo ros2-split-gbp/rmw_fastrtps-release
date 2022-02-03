@@ -98,7 +98,7 @@ rmw_init(const rmw_init_options_t * options, rmw_context_t * context)
 
   context->instance_id = options->instance_id;
   context->implementation_identifier = eprosima_fastrtps_identifier;
-  context->actual_domain_id =
+  context->options.domain_id =
     RMW_DEFAULT_DOMAIN_ID == options->domain_id ? 0uL : options->domain_id;
 
   context->impl = new (std::nothrow) rmw_context_impl_t();
@@ -154,10 +154,6 @@ rmw_context_fini(rmw_context_t * context)
   if (!context->impl->is_shutdown) {
     RCUTILS_SET_ERROR_MSG("context has not been shutdown");
     return RMW_RET_INVALID_ARGUMENT;
-  }
-  if (context->impl->count > 0) {
-    RMW_SET_ERROR_MSG("Finalizing a context with active nodes");
-    return RMW_RET_ERROR;
   }
   rmw_ret_t ret = rmw_init_options_fini(&context->options);
   delete context->impl;

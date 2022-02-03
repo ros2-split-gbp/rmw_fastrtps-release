@@ -10,7 +10,7 @@ Below are the rationales, notes, and caveats for this claim, organized by each r
 
 ### Version Scheme [1.i]
 
-`rmw_fastrtps_dynamic_cpp` uses `semver` according to the recommendation for ROS Core packages in the [ROS 2 Developer Guide](https://docs.ros.org/en/rolling/Contributing/Developer-Guide.html#versioning).
+`rmw_fastrtps_dynamic_cpp` uses `semver` according to the recommendation for ROS Core packages in the [ROS 2 Developer Guide](https://docs.ros.org/en/foxy/Contributing/Developer-Guide.html#versioning).
 
 ### Version Stability [1.ii]
 
@@ -33,7 +33,7 @@ All installed headers are in the `include` directory of the package, headers in 
 
 ## Change Control Process [2]
 
-`rmw_fastrtps_dynamic_cpp` follows the recommended guidelines for ROS Core packages in the [ROS 2 Developer Guide](https://docs.ros.org/en/rolling/Contributing/Developer-Guide.html#quality-practices).
+`rmw_fastrtps_dynamic_cpp` follows the recommended guidelines for ROS Core packages in the [ROS 2 Developer Guide](https://docs.ros.org/en/foxy/Contributing/Developer-Guide.html#quality-practices).
 
 ### Change Requests [2.i]
 
@@ -46,7 +46,6 @@ This package uses DCO as its confirmation of contributor origin policy. More inf
 ### Peer Review Policy [2.iii]
 
 Following the recommended guidelines for ROS Core packages, all pull requests must have at least 1 peer review.
-Check [ROS 2 Developer Guide](https://docs.ros.org/en/rolling/Contributing/Developer-Guide.html#change-control-process) for additional information.
 
 ### Continuous Integration [2.iv]
 
@@ -89,16 +88,16 @@ The results of the test can be found [here](https://ci.ros2.org/view/nightly/job
 
 All `rmw_fastrtps_dynamic_cpp` public features are ROS middleware features.
 
-Unit, integration, and system tests higher up in the stack, such as those found in [`test_rmw_implementation`](https://github.com/ros2/rmw_implementation/tree/master/test_rmw_implementation), [`test_rclcpp`](https://github.com/ros2/system_tests/tree/master/test_rclcpp), and [`test_communication`](https://github.com/ros2/system_tests/tree/master/test_communication) packages, provide feature coverage. [Nightly `extra_rmw_release` CI jobs](https://ci.ros2.org/view/nightly/) also test this middleware implementation.
+Unit, integration, and system tests higher up in the stack, such as those found in [`test_rmw_implementation`](https://github.com/ros2/rmw_implementation/tree/foxy/test_rmw_implementation), [`test_rclcpp`](https://github.com/ros2/system_tests/tree/foxy/test_rclcpp), and [`test_communication`](https://github.com/ros2/system_tests/tree/foxy/test_communication) packages, provide feature coverage. [Nightly `extra_rmw_release` CI jobs](https://ci.ros2.org/view/nightly/) also test this middleware implementation.
 
 ### Public API Testing [4.ii]
 
 `rmw_fastrtps_dynamic_cpp` implements the ROS middleware public API, but also provides public API of its own.
 
-Unit tests located in the [`test`](https://github.com/eProsima/rmw_fastrtps/tree/master/rmw_fastrtps_dynamic_cpp/test) directory provide coverage for public but `rmw_fastrtps_dynamic_cpp` specific API.
+Unit tests located in the [`test`](https://github.com/eProsima/rmw_fastrtps/tree/foxy/rmw_fastrtps_dynamic_cpp/test) directory provide coverage for public but `rmw_fastrtps_dynamic_cpp` specific API.
 New additions or changes to this API require tests before being added.
 
-Unit, integration, and system tests higher up in the stack, such as those found in [`test_rmw_implementation`](https://github.com/ros2/rmw_implementation/tree/master/test_rmw_implementation), [`test_rclcpp`](https://github.com/ros2/system_tests/tree/master/test_rclcpp), and [`test_communication`](https://github.com/ros2/system_tests/tree/master/test_communication) packages, ensure compliance with the ROS middleware API specification (see [`rmw`](https://github.com/ros2/rmw) package) and further extend coverage.
+Unit, integration, and system tests higher up in the stack, such as those found in [`test_rmw_implementation`](https://github.com/ros2/rmw_implementation/tree/foxy/test_rmw_implementation), [`test_rclcpp`](https://github.com/ros2/system_tests/tree/foxy/test_rclcpp), and [`test_communication`](https://github.com/ros2/system_tests/tree/foxy/test_communication) packages, ensure compliance with the ROS middleware API specification (see [`rmw`](https://github.com/ros2/rmw) package) and further extend coverage.
 
 ### Coverage [4.iii]
 
@@ -111,7 +110,7 @@ Coverage checks should be made to consider this package to apply for a higher qu
 
 ### Linters and Static Analysis [4.v]
 
-`rmw_fastrtps_dynamic_cpp` uses and passes all the standard linters and static analysis tools for a C++ package as described in the [ROS 2 Developer Guide](https://docs.ros.org/en/rolling/Contributing/Developer-Guide.html#linters-and-static-analysis).
+`rmw_fastrtps_dynamic_cpp` uses and passes all the standard linters and static analysis tools for a C++ package as described in the [ROS 2 Developer Guide](https://docs.ros.org/en/foxy/Contributing/Developer-Guide.html#linters-and-static-analysis).
 
 Results of the nightly linter tests can be found [here](https://ci.ros2.org/view/nightly/job/nightly_linux_extra_rmw_release/lastCompletedBuild/testReport/rmw_fastrtps_dynamic_cpp/).
 
@@ -120,15 +119,15 @@ Results of the nightly linter tests can be found [here](https://ci.ros2.org/view
 ### Direct Runtime ROS Dependencies [5.i]/[5.ii]
 
 `rmw_fastrtps_dynamic_cpp` has the following runtime ROS dependencies:
-* `fastrtps_cmake_module`: [QUALITY DECLARATION](https://github.com/ros2/rosidl_typesupport_fastrtps/blob/master/fastrtps_cmake_module/QUALITY_DECLARATION.md)
-* `rcpputils`: [QUALITY DECLARATION](https://github.com/ros2/rcpputils/blob/master/QUALITY_DECLARATION.md)
-* `rcutils`: [QUALITY DECLARATION](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md)
-* `rmw`: [QUALITY DECLARATION](https://github.com/ros2/rmw/blob/master/rmw/QUALITY_DECLARATION.md)
-* `rmw_dds_common`: [QUALITY DECLARATION](https://github.com/ros2/rmw_dds_common/blob/master/rmw_dds_common/QUALITY_DECLARATION.md)
-* `rmw_fastrtps_shared_cpp`: [QUALITY DECLARATION](https://github.com/ros2/rmw_fastrtps/blob/master/rmw_fastrtps_shared_cpp/QUALITY_DECLARATION.md)
-* `rosidl_runtime_c`: [QUALITY DECLARATION](https://github.com/ros2/rosidl/blob/master/rosidl_runtime_c/QUALITY_DECLARATION.md)
-* `rosidl_typesupport_fastrtps_c`: [QUALITY DECLARATION](https://github.com/ros2/rosidl_typesupport_fastrtps/blob/master/rosidl_typesupport_fastrtps_c/QUALITY_DECLARATION.md)
-* `rosidl_typesupport_fastrtps_cpp`: [QUALITY DECLARATION](https://github.com/ros2/rosidl_typesupport_fastrtps/blob/master/rosidl_typesupport_fastrtps_cpp/QUALITY_DECLARATION.md)
+* `fastrtps_cmake_module`
+* `rcpputils`
+* `rcutils`
+* `rmw`
+* `rmw_dds_common`
+* `rmw_fastrtps_shared_cpp`
+* `rosidl_runtime_c`
+* `rosidl_typesupport_fastrtps_c`
+* `rosidl_typesupport_fastrtps_cpp`
 * `rosidl_typesupport_introspection_c`
 * `rosidl_typesupport_introspection_cpp`
 
@@ -140,8 +139,8 @@ It also has several test dependencies, which do not affect the resulting quality
 ### Direct Runtime Non-ROS Dependencies [5.iii]
 
 `rmw_fastrtps_cpp` has the following runtime non-ROS dependencies.
-* `fastcdr`: *eProsima Fast CDR* claims to be Quality Level 2. For more information, please refer to its [QUALITY DECLARATION](https://github.com/eProsima/Fast-CDR/blob/master/QUALITY.md)
-* `fastrtps`: *eProsima Fast DDS* claims to be Quality Level 2. For more information, please refer to its [QUALITY DECLARATION](https://github.com/eProsima/Fast-DDS/blob/master/QUALITY.md)
+* `fastcdr`: [QUALITY DECLARATION](https://github.com/eProsima/Fast-CDR/blob/master/QUALITY.md)
+* `fastrtps`: [QUALITY DECLARATION](https://github.com/eProsima/Fast-DDS/blob/2.0.x/QUALITY.md)
 
 ## Platform Support [6]
 

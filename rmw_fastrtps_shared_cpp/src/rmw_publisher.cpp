@@ -20,9 +20,6 @@
 #include "rmw/impl/cpp/macros.hpp"
 #include "rmw/rmw.h"
 
-#include "fastdds/dds/publisher/DataWriter.hpp"
-#include "fastdds/dds/publisher/qos/DataWriterQos.hpp"
-
 #include "rmw_fastrtps_shared_cpp/custom_participant_info.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_publisher_info.hpp"
 #include "rmw_fastrtps_shared_cpp/namespace_prefix.hpp"
@@ -31,8 +28,6 @@
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 #include "rmw_fastrtps_shared_cpp/rmw_context_impl.hpp"
 #include "rmw_fastrtps_shared_cpp/TypeSupport.hpp"
-
-#include "time_utils.hpp"
 
 namespace rmw_fastrtps_shared_cpp
 {
@@ -117,33 +112,8 @@ __rmw_publisher_assert_liveliness(
     return RMW_RET_ERROR;
   }
 
-  info->data_writer_->assert_liveliness();
+  info->publisher_->assert_liveliness();
   return RMW_RET_OK;
-}
-
-rmw_ret_t
-__rmw_publisher_wait_for_all_acked(
-  const char * identifier,
-  const rmw_publisher_t * publisher,
-  rmw_time_t wait_timeout)
-{
-  RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    publisher,
-    publisher->implementation_identifier,
-    identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-
-  auto info = static_cast<CustomPublisherInfo *>(publisher->data);
-
-  eprosima::fastrtps::Duration_t timeout = rmw_time_to_fastrtps(wait_timeout);
-
-  ReturnCode_t ret = info->data_writer_->wait_for_acknowledgments(timeout);
-  if (ReturnCode_t::RETCODE_OK == ret) {
-    return RMW_RET_OK;
-  }
-
-  return RMW_RET_TIMEOUT;
 }
 
 rmw_ret_t
@@ -152,65 +122,11 @@ __rmw_publisher_get_actual_qos(
   rmw_qos_profile_t * qos)
 {
   auto info = static_cast<CustomPublisherInfo *>(publisher->data);
-  eprosima::fastdds::dds::DataWriter * fastdds_dw = info->data_writer_;
-  const eprosima::fastdds::dds::DataWriterQos & dds_qos = fastdds_dw->get_qos();
+  eprosima::fastrtps::Publisher * fastrtps_pub = info->publisher_;
+  const eprosima::fastrtps::PublisherAttributes & attributes =
+    fastrtps_pub->getAttributes();
 
-  dds_qos_to_rmw_qos(dds_qos, qos);
-
-  return RMW_RET_OK;
-}
-
-rmw_ret_t
-__rmw_borrow_loaned_message(
-  const char * identifier,
-  const rmw_publisher_t * publisher,
-  const rosidl_message_type_support_t * type_support,
-  void ** ros_message)
-{
-  RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    publisher, publisher->implementation_identifier, identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  if (!publisher->can_loan_messages) {
-    RMW_SET_ERROR_MSG("Loaning is not supported");
-    return RMW_RET_UNSUPPORTED;
-  }
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(type_support, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(ros_message, RMW_RET_INVALID_ARGUMENT);
-  if (nullptr != *ros_message) {
-    return RMW_RET_INVALID_ARGUMENT;
-  }
-
-  auto info = static_cast<CustomPublisherInfo *>(publisher->data);
-  if (!info->data_writer_->loan_sample(*ros_message)) {
-    return RMW_RET_ERROR;
-  }
-
-  return RMW_RET_OK;
-}
-
-rmw_ret_t
-__rmw_return_loaned_message_from_publisher(
-  const char * identifier,
-  const rmw_publisher_t * publisher,
-  void * loaned_message)
-{
-  RMW_CHECK_ARGUMENT_FOR_NULL(publisher, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    publisher, publisher->implementation_identifier, identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  if (!publisher->can_loan_messages) {
-    RMW_SET_ERROR_MSG("Loaning is not supported");
-    return RMW_RET_UNSUPPORTED;
-  }
-
-  RMW_CHECK_ARGUMENT_FOR_NULL(loaned_message, RMW_RET_INVALID_ARGUMENT);
-
-  auto info = static_cast<CustomPublisherInfo *>(publisher->data);
-  if (!info->data_writer_->discard_loan(loaned_message)) {
-    return RMW_RET_ERROR;
-  }
+  dds_attributes_to_rmw_qos(attributes, qos);
 
   return RMW_RET_OK;
 }

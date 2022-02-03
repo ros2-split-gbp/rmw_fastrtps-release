@@ -14,6 +14,8 @@
 
 #include <string>
 
+#include "fastrtps/Domain.h"
+
 #include "rcutils/allocator.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
@@ -31,6 +33,8 @@
 #include "rmw_fastrtps_shared_cpp/custom_participant_info.hpp"
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 #include "rmw_fastrtps_shared_cpp/rmw_context_impl.hpp"
+
+using Participant = eprosima::fastrtps::Participant;
 
 namespace rmw_fastrtps_shared_cpp
 {

@@ -91,9 +91,13 @@ rmw_take_loaned_message(
   bool * taken,
   rmw_subscription_allocation_t * allocation)
 {
-  static_cast<void>(allocation);
-  return rmw_fastrtps_shared_cpp::__rmw_take_loaned_message_internal(
-    eprosima_fastrtps_identifier, subscription, loaned_message, taken, nullptr);
+  (void) subscription;
+  (void) loaned_message;
+  (void) taken;
+  (void) allocation;
+
+  RMW_SET_ERROR_MSG("rmw_take_loaned_message is not implemented for rmw_fastrtps_dynamic_cpp");
+  return RMW_RET_UNSUPPORTED;
 }
 
 rmw_ret_t
@@ -104,10 +108,15 @@ rmw_take_loaned_message_with_info(
   rmw_message_info_t * message_info,
   rmw_subscription_allocation_t * allocation)
 {
-  static_cast<void>(allocation);
-  RMW_CHECK_ARGUMENT_FOR_NULL(message_info, RMW_RET_INVALID_ARGUMENT);
-  return rmw_fastrtps_shared_cpp::__rmw_take_loaned_message_internal(
-    eprosima_fastrtps_identifier, subscription, loaned_message, taken, message_info);
+  (void) subscription;
+  (void) loaned_message;
+  (void) taken;
+  (void) message_info;
+  (void) allocation;
+
+  RMW_SET_ERROR_MSG(
+    "rmw_take_loaned_message_with_info is not implemented for rmw_fastrtps_dynamic_cpp");
+  return RMW_RET_UNSUPPORTED;
 }
 
 rmw_ret_t
@@ -115,8 +124,12 @@ rmw_return_loaned_message_from_subscription(
   const rmw_subscription_t * subscription,
   void * loaned_message)
 {
-  return rmw_fastrtps_shared_cpp::__rmw_return_loaned_message_from_subscription(
-    eprosima_fastrtps_identifier, subscription, loaned_message);
+  (void) subscription;
+  (void) loaned_message;
+
+  RMW_SET_ERROR_MSG(
+    "rmw_return_loaned_message_from_subscription is not implemented for rmw_fastrtps_dynamic_cpp");
+  return RMW_RET_UNSUPPORTED;
 }
 
 rmw_ret_t

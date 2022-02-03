@@ -60,7 +60,7 @@ init_context_impl(rmw_context_t * context)
   participant_info(
     rmw_fastrtps_shared_cpp::create_participant(
       eprosima_fastrtps_identifier,
-      context->actual_domain_id,
+      context->options.domain_id,
       &context->options.security_options,
       (context->options.localhost_only == RMW_LOCALHOST_ONLY_ENABLED) ? 1 : 0,
       context->options.enclave,
@@ -151,8 +151,15 @@ init_context_impl(rmw_context_t * context)
     return RMW_RET_BAD_ALLOC;
   }
 
+  common_context->graph_cache.set_on_change_callback(
+    [guard_condition = graph_guard_condition.get()]() {
+      rmw_fastrtps_shared_cpp::__rmw_trigger_guard_condition(
+        eprosima_fastrtps_identifier,
+        guard_condition);
+    });
+
   common_context->gid = rmw_fastrtps_shared_cpp::create_rmw_gid(
-    eprosima_fastrtps_identifier, participant_info->participant_->guid());
+    eprosima_fastrtps_identifier, participant_info->participant->getGuid());
   common_context->pub = publisher.get();
   common_context->sub = subscription.get();
   common_context->graph_guard_condition = graph_guard_condition.get();
@@ -164,14 +171,6 @@ init_context_impl(rmw_context_t * context)
   if (RMW_RET_OK != ret) {
     return ret;
   }
-
-  common_context->graph_cache.set_on_change_callback(
-    [guard_condition = graph_guard_condition.get()]() {
-      rmw_fastrtps_shared_cpp::__rmw_trigger_guard_condition(
-        eprosima_fastrtps_identifier,
-        guard_condition);
-    });
-
   common_context->graph_cache.add_participant(
     common_context->gid,
     context->options.enclave);

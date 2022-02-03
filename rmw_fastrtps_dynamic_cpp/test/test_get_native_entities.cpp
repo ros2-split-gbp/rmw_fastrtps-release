@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
@@ -50,7 +50,7 @@ protected:
     ASSERT_EQ(RMW_RET_OK, ret) << rmw_get_error_string().str;
     constexpr char node_name[] = "my_node";
     constexpr char node_namespace[] = "/my_ns";
-    node = rmw_create_node(&context, node_name, node_namespace);
+    node = rmw_create_node(&context, node_name, node_namespace, 1, false);
     ASSERT_NE(nullptr, node) << rmw_get_error_string().str;
   }
 
@@ -68,19 +68,19 @@ protected:
   rmw_node_t * node{nullptr};
 };
 
-TEST_F(TestNativeEntities, get_domain_participant) {
-  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_domain_participant(nullptr));
+TEST_F(TestNativeEntities, get_participant) {
+  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_participant(nullptr));
 
   const char * implementation_identifier = node->implementation_identifier;
   node->implementation_identifier = "not-an-rmw-implementation-identifier";
-  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_domain_participant(node));
+  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_participant(node));
   node->implementation_identifier = implementation_identifier;
 
-  EXPECT_NE(nullptr, rmw_fastrtps_dynamic_cpp::get_domain_participant(node));
+  EXPECT_NE(nullptr, rmw_fastrtps_dynamic_cpp::get_participant(node));
 }
 
-TEST_F(TestNativeEntities, get_datawriter) {
-  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_datawriter(nullptr));
+TEST_F(TestNativeEntities, get_publisher) {
+  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_publisher(nullptr));
 
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
@@ -92,17 +92,17 @@ TEST_F(TestNativeEntities, get_datawriter) {
 
   const char * implementation_identifier = pub->implementation_identifier;
   pub->implementation_identifier = "not-an-rmw-implementation-identifier";
-  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_datawriter(pub));
+  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_publisher(pub));
   pub->implementation_identifier = implementation_identifier;
 
-  EXPECT_NE(nullptr, rmw_fastrtps_dynamic_cpp::get_datawriter(pub));
+  EXPECT_NE(nullptr, rmw_fastrtps_dynamic_cpp::get_publisher(pub));
 
   rmw_ret_t ret = rmw_destroy_publisher(node, pub);
   EXPECT_EQ(RMW_RET_OK, ret) << rmw_get_error_string().str;
 }
 
-TEST_F(TestNativeEntities, get_datareader) {
-  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_datareader(nullptr));
+TEST_F(TestNativeEntities, get_subscriber) {
+  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_subscriber(nullptr));
 
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
@@ -115,18 +115,18 @@ TEST_F(TestNativeEntities, get_datareader) {
 
   const char * implementation_identifier = sub->implementation_identifier;
   sub->implementation_identifier = "not-an-rmw-implementation-identifier";
-  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_datareader(sub));
+  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_subscriber(sub));
   sub->implementation_identifier = implementation_identifier;
 
-  EXPECT_NE(nullptr, rmw_fastrtps_dynamic_cpp::get_datareader(sub));
+  EXPECT_NE(nullptr, rmw_fastrtps_dynamic_cpp::get_subscriber(sub));
 
   rmw_ret_t ret = rmw_destroy_subscription(node, sub);
   EXPECT_EQ(RMW_RET_OK, ret) << rmw_get_error_string().str;
 }
 
 TEST_F(TestNativeEntities, get_service) {
-  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_request_datareader(nullptr));
-  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_response_datawriter(nullptr));
+  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_request_subscriber(nullptr));
+  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_response_publisher(nullptr));
 
   const rosidl_service_type_support_t * ts =
     ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
@@ -137,20 +137,20 @@ TEST_F(TestNativeEntities, get_service) {
 
   const char * implementation_identifier = srv->implementation_identifier;
   srv->implementation_identifier = "not-an-rmw-implementation-identifier";
-  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_request_datareader(srv));
-  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_response_datawriter(srv));
+  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_request_subscriber(srv));
+  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_response_publisher(srv));
   srv->implementation_identifier = implementation_identifier;
 
-  EXPECT_NE(nullptr, rmw_fastrtps_dynamic_cpp::get_request_datareader(srv));
-  EXPECT_NE(nullptr, rmw_fastrtps_dynamic_cpp::get_response_datawriter(srv));
+  EXPECT_NE(nullptr, rmw_fastrtps_dynamic_cpp::get_request_subscriber(srv));
+  EXPECT_NE(nullptr, rmw_fastrtps_dynamic_cpp::get_response_publisher(srv));
 
   rmw_ret_t ret = rmw_destroy_service(node, srv);
   EXPECT_EQ(RMW_RET_OK, ret) << rmw_get_error_string().str;
 }
 
 TEST_F(TestNativeEntities, get_client) {
-  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_request_datawriter(nullptr));
-  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_response_datareader(nullptr));
+  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_request_publisher(nullptr));
+  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_response_subscriber(nullptr));
 
   const rosidl_service_type_support_t * ts =
     ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
@@ -161,12 +161,12 @@ TEST_F(TestNativeEntities, get_client) {
 
   const char * implementation_identifier = client->implementation_identifier;
   client->implementation_identifier = "not-an-rmw-implementation-identifier";
-  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_request_datawriter(client));
-  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_response_datareader(client));
+  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_request_publisher(client));
+  EXPECT_EQ(nullptr, rmw_fastrtps_dynamic_cpp::get_response_subscriber(client));
   client->implementation_identifier = implementation_identifier;
 
-  EXPECT_NE(nullptr, rmw_fastrtps_dynamic_cpp::get_request_datawriter(client));
-  EXPECT_NE(nullptr, rmw_fastrtps_dynamic_cpp::get_response_datareader(client));
+  EXPECT_NE(nullptr, rmw_fastrtps_dynamic_cpp::get_request_publisher(client));
+  EXPECT_NE(nullptr, rmw_fastrtps_dynamic_cpp::get_response_subscriber(client));
 
   rmw_ret_t ret = rmw_destroy_client(node, client);
   EXPECT_EQ(RMW_RET_OK, ret) << rmw_get_error_string().str;

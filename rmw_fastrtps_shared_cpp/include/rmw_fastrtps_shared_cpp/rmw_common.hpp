@@ -23,7 +23,6 @@
 #include "rmw/topic_endpoint_info_array.h"
 #include "rmw/types.h"
 #include "rmw/names_and_types.h"
-#include "rmw/network_flow_endpoint_array.h"
 
 namespace rmw_fastrtps_shared_cpp
 {
@@ -146,39 +145,9 @@ __rmw_publish_serialized_message(
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
-__rmw_borrow_loaned_message(
-  const char * identifier,
-  const rmw_publisher_t * publisher,
-  const rosidl_message_type_support_t * type_support,
-  void ** ros_message);
-
-RMW_FASTRTPS_SHARED_CPP_PUBLIC
-rmw_ret_t
-__rmw_return_loaned_message_from_publisher(
-  const char * identifier,
-  const rmw_publisher_t * publisher,
-  void * loaned_message);
-
-RMW_FASTRTPS_SHARED_CPP_PUBLIC
-rmw_ret_t
-__rmw_publish_loaned_message(
-  const char * identifier,
-  const rmw_publisher_t * publisher,
-  const void * ros_message,
-  rmw_publisher_allocation_t * allocation);
-
-RMW_FASTRTPS_SHARED_CPP_PUBLIC
-rmw_ret_t
 __rmw_publisher_assert_liveliness(
   const char * identifier,
   const rmw_publisher_t * publisher);
-
-RMW_FASTRTPS_SHARED_CPP_PUBLIC
-rmw_ret_t
-__rmw_publisher_wait_for_all_acked(
-  const char * identifier,
-  const rmw_publisher_t * publisher,
-  rmw_time_t wait_timeout);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
@@ -319,30 +288,6 @@ __rmw_subscription_get_actual_qos(
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
-__rmw_service_response_publisher_get_actual_qos(
-  const rmw_service_t * service,
-  rmw_qos_profile_t * qos);
-
-RMW_FASTRTPS_SHARED_CPP_PUBLIC
-rmw_ret_t
-__rmw_service_request_subscription_get_actual_qos(
-  const rmw_service_t * service,
-  rmw_qos_profile_t * qos);
-
-RMW_FASTRTPS_SHARED_CPP_PUBLIC
-rmw_ret_t
-__rmw_client_request_publisher_get_actual_qos(
-  const rmw_client_t * client,
-  rmw_qos_profile_t * qos);
-
-RMW_FASTRTPS_SHARED_CPP_PUBLIC
-rmw_ret_t
-__rmw_client_response_subscription_get_actual_qos(
-  const rmw_client_t * client,
-  rmw_qos_profile_t * qos);
-
-RMW_FASTRTPS_SHARED_CPP_PUBLIC
-rmw_ret_t
 __rmw_take(
   const char * identifier,
   const rmw_subscription_t * subscription,
@@ -360,22 +305,6 @@ __rmw_take_sequence(
   rmw_message_info_sequence_t * message_info_sequence,
   size_t * taken,
   rmw_subscription_allocation_t * allocation);
-
-RMW_FASTRTPS_SHARED_CPP_PUBLIC
-rmw_ret_t
-__rmw_take_loaned_message_internal(
-  const char * identifier,
-  const rmw_subscription_t * subscription,
-  void ** loaned_message,
-  bool * taken,
-  rmw_message_info_t * message_info);
-
-RMW_FASTRTPS_SHARED_CPP_PUBLIC
-rmw_ret_t
-__rmw_return_loaned_message_from_subscription(
-  const char * identifier,
-  const rmw_subscription_t * subscription,
-  void * loaned_message);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
@@ -462,29 +391,6 @@ __rmw_get_subscriptions_info_by_topic(
   const char * topic_name,
   bool no_mangle,
   rmw_topic_endpoint_info_array_t * subscriptions_info);
-
-RMW_FASTRTPS_SHARED_CPP_PUBLIC
-rmw_ret_t
-__rmw_qos_profile_check_compatible(
-  const rmw_qos_profile_t publisher_profile,
-  const rmw_qos_profile_t subscription_profile,
-  rmw_qos_compatibility_type_t * compatibility,
-  char * reason,
-  size_t reason_size);
-
-RMW_FASTRTPS_SHARED_CPP_PUBLIC
-rmw_ret_t
-__rmw_publisher_get_network_flow_endpoints(
-  const rmw_publisher_t * publisher,
-  rcutils_allocator_t * allocator,
-  rmw_network_flow_endpoint_array_t * network_flow_endpoint_array);
-
-RMW_FASTRTPS_SHARED_CPP_PUBLIC
-rmw_ret_t
-__rmw_subscription_get_network_flow_endpoints(
-  const rmw_subscription_t * subscription,
-  rcutils_allocator_t * allocator,
-  rmw_network_flow_endpoint_array_t * network_flow_endpoint_array);
 
 }  // namespace rmw_fastrtps_shared_cpp
 
