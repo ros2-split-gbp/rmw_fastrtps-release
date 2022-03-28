@@ -19,6 +19,7 @@
 
 #include "rmw/error_handling.h"
 #include "rmw/event.h"
+#include "rmw/features.h"
 #include "rmw/rmw.h"
 #include "rmw/topic_endpoint_info_array.h"
 #include "rmw/types.h"
@@ -303,7 +304,8 @@ rmw_ret_t
 __rmw_destroy_subscription(
   const char * identifier,
   const rmw_node_t * node,
-  rmw_subscription_t * subscription);
+  rmw_subscription_t * subscription,
+  bool reset_cft = false);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
@@ -316,6 +318,19 @@ rmw_ret_t
 __rmw_subscription_get_actual_qos(
   const rmw_subscription_t * subscription,
   rmw_qos_profile_t * qos);
+
+RMW_FASTRTPS_SHARED_CPP_PUBLIC
+rmw_ret_t
+__rmw_subscription_set_content_filter(
+  rmw_subscription_t * subscription,
+  const rmw_subscription_content_filter_options_t * options);
+
+RMW_FASTRTPS_SHARED_CPP_PUBLIC
+rmw_ret_t
+__rmw_subscription_get_content_filter(
+  const rmw_subscription_t * subscription,
+  rcutils_allocator_t * allocator,
+  rmw_subscription_content_filter_options_t * options);
 
 RMW_FASTRTPS_SHARED_CPP_PUBLIC
 rmw_ret_t
@@ -513,6 +528,10 @@ __rmw_event_set_callback(
   rmw_event_t * rmw_event,
   rmw_event_callback_t callback,
   const void * user_data);
+
+RMW_FASTRTPS_SHARED_CPP_PUBLIC
+bool
+__rmw_feature_supported(rmw_feature_t feature);
 
 }  // namespace rmw_fastrtps_shared_cpp
 
