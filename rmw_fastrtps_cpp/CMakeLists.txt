@@ -35,6 +35,7 @@ find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw_dds_common REQUIRED)
 find_package(rmw_fastrtps_shared_cpp REQUIRED)
+find_package(tracetools REQUIRED)
 
 find_package(fastrtps_cmake_module REQUIRED)
 find_package(fastcdr REQUIRED CONFIG)
@@ -62,6 +63,7 @@ add_library(rmw_fastrtps_cpp
   src/rmw_compare_gids_equal.cpp
   src/rmw_count.cpp
   src/rmw_event.cpp
+  src/rmw_features.cpp
   src/rmw_get_gid_for_publisher.cpp
   src/rmw_get_implementation_identifier.cpp
   src/rmw_get_serialization_format.cpp
@@ -104,6 +106,7 @@ ament_target_dependencies(rmw_fastrtps_cpp
   "rmw_fastrtps_shared_cpp"
   "rmw"
   "rosidl_runtime_c"
+  "tracetools"
 )
 
 target_link_libraries(rmw_fastrtps_cpp
@@ -129,10 +132,11 @@ ament_export_dependencies(rmw_fastrtps_shared_cpp)
 ament_export_dependencies(rosidl_runtime_c)
 ament_export_dependencies(rosidl_typesupport_fastrtps_c)
 ament_export_dependencies(rosidl_typesupport_fastrtps_cpp)
+ament_export_dependencies(tracetools)
 
 register_rmw_implementation(
-  "c:rosidl_typesupport_c:rosidl_typesupport_fastrtps_c"
-  "cpp:rosidl_typesupport_cpp:rosidl_typesupport_fastrtps_cpp")
+  "c:rosidl_typesupport_c:rosidl_typesupport_fastrtps_c:rosidl_typesupport_introspection_c"
+  "cpp:rosidl_typesupport_cpp:rosidl_typesupport_fastrtps_cpp:rosidl_typesupport_introspection_cpp")
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
