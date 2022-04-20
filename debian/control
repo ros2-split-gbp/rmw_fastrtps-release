@@ -1,0 +1,12 @@
+Source: ros-humble-rmw-fastrtps-shared-cpp
+Section: misc
+Priority: optional
+Maintainer: Michel Hidalgo <michel@ekumenlabs.com>
+Build-Depends: debhelper (>= 9.0.0), ros-humble-ament-cmake-ros, ros-humble-ament-lint-auto <!nocheck>, ros-humble-ament-lint-common <!nocheck>, ros-humble-fastcdr, ros-humble-fastrtps, ros-humble-fastrtps-cmake-module, ros-humble-osrf-testing-tools-cpp <!nocheck>, ros-humble-rcpputils, ros-humble-rcutils, ros-humble-rmw, ros-humble-rmw-dds-common, ros-humble-rosidl-typesupport-introspection-c, ros-humble-rosidl-typesupport-introspection-cpp, ros-humble-tracetools, ros-humble-ros-workspace
+Homepage: 
+Standards-Version: 3.9.2
+
+Package: ros-humble-rmw-fastrtps-shared-cpp
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-humble-ament-cmake, ros-humble-fastcdr, ros-humble-fastrtps, ros-humble-fastrtps-cmake-module, ros-humble-rcpputils, ros-humble-rcutils, ros-humble-rmw, ros-humble-rmw-dds-common, ros-humble-rosidl-typesupport-introspection-c, ros-humble-rosidl-typesupport-introspection-cpp, ros-humble-tracetools, ros-humble-ros-workspace
+Description: Code shared on static and dynamic type support of rmw_fastrtps_cpp.
