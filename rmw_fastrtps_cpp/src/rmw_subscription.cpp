@@ -84,8 +84,7 @@ rmw_create_subscription(
   }
 
   auto common_context = static_cast<rmw_dds_common::Context *>(node->context->impl->common);
-  auto info = static_cast<CustomSubscriberInfo *>(subscription->data);
-
+  auto info = static_cast<const CustomSubscriberInfo *>(subscription->data);
   {
     // Update graph
     std::lock_guard<std::mutex> guard(common_context->node_update_mutex);
@@ -113,9 +112,6 @@ rmw_create_subscription(
       return nullptr;
     }
   }
-  info->node_ = node;
-  info->common_context_ = common_context;
-
   return subscription;
 }
 
@@ -153,43 +149,6 @@ rmw_subscription_get_actual_qos(
 }
 
 rmw_ret_t
-rmw_subscription_set_content_filter(
-  rmw_subscription_t * subscription,
-  const rmw_subscription_content_filter_options_t * options)
-{
-  RMW_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(options, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    subscription,
-    subscription->implementation_identifier,
-    eprosima_fastrtps_identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  rmw_ret_t ret = rmw_fastrtps_shared_cpp::__rmw_subscription_set_content_filter(
-    subscription, options);
-  auto info = static_cast<const CustomSubscriberInfo *>(subscription->data);
-  subscription->is_cft_enabled = (info && info->filtered_topic_);
-  return ret;
-}
-
-rmw_ret_t
-rmw_subscription_get_content_filter(
-  const rmw_subscription_t * subscription,
-  rcutils_allocator_t * allocator,
-  rmw_subscription_content_filter_options_t * options)
-{
-  RMW_CHECK_ARGUMENT_FOR_NULL(subscription, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(allocator, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_ARGUMENT_FOR_NULL(options, RMW_RET_INVALID_ARGUMENT);
-  RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
-    subscription,
-    subscription->implementation_identifier,
-    eprosima_fastrtps_identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-  return rmw_fastrtps_shared_cpp::__rmw_subscription_get_content_filter(
-    subscription, allocator, options);
-}
-
-rmw_ret_t
 rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
 {
   RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
@@ -207,17 +166,5 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
 
   return rmw_fastrtps_shared_cpp::__rmw_destroy_subscription(
     eprosima_fastrtps_identifier, node, subscription);
-}
-
-rmw_ret_t
-rmw_subscription_set_on_new_message_callback(
-  rmw_subscription_t * rmw_subscription,
-  rmw_event_callback_t callback,
-  const void * user_data)
-{
-  return rmw_fastrtps_shared_cpp::__rmw_subscription_set_on_new_message_callback(
-    rmw_subscription,
-    callback,
-    user_data);
 }
 }  // extern "C"

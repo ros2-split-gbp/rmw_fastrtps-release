@@ -17,8 +17,7 @@
 
 #include <mutex>
 
-// Definition of struct rmw_context_impl_s as declared in rmw/init.h
-struct rmw_context_impl_s
+struct rmw_context_impl_t
 {
   /// Pointer to `rmw_dds_common::Context`.
   void * common;

@@ -47,8 +47,6 @@
 #include "rmw_fastrtps_cpp/identifier.hpp"
 #include "rmw_fastrtps_cpp/publisher.hpp"
 
-#include "tracetools/tracetools.h"
-
 #include "type_support_common.hpp"
 
 using DataSharingKind = eprosima::fastdds::dds::DataSharingKind;
@@ -201,13 +199,6 @@ rmw_fastrtps_cpp::create_publisher(
   }
   info->type_support_ = fastdds_type;
 
-  if (!rmw_fastrtps_shared_cpp::register_type_object(type_supports, type_name)) {
-    RMW_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "failed to register type object with incompatible type %s",
-      type_name.c_str());
-    return nullptr;
-  }
-
   /////
   // Create Listener
   if (create_publisher_listener) {
@@ -323,9 +314,5 @@ rmw_fastrtps_cpp::create_publisher(
   cleanup_datawriter.cancel();
   cleanup_info.cancel();
 
-  TRACEPOINT(
-    rmw_publisher_init,
-    static_cast<const void *>(rmw_publisher),
-    info->publisher_gid.data);
   return rmw_publisher;
 }

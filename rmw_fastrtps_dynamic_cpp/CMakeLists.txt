@@ -64,7 +64,6 @@ add_library(rmw_fastrtps_dynamic_cpp
   src/rmw_compare_gids_equal.cpp
   src/rmw_count.cpp
   src/rmw_event.cpp
-  src/rmw_features.cpp
   src/rmw_get_gid_for_publisher.cpp
   src/rmw_get_implementation_identifier.cpp
   src/rmw_get_serialization_format.cpp
@@ -125,11 +124,10 @@ configure_rmw_library(rmw_fastrtps_dynamic_cpp)
 target_compile_definitions(${PROJECT_NAME}
 PRIVATE "RMW_FASTRTPS_DYNAMIC_CPP_BUILDING_LIBRARY")
 
-# Export old-style CMake variables
-ament_export_include_directories("include/${PROJECT_NAME}")
+# specific order: dependents before dependencies
+ament_export_include_directories(include)
 ament_export_libraries(rmw_fastrtps_dynamic_cpp)
 
-# specific order: dependents before dependencies
 ament_export_dependencies(rcpputils)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw)
@@ -171,7 +169,7 @@ ament_package(
 
 install(
   DIRECTORY include/
-  DESTINATION include/${PROJECT_NAME}
+  DESTINATION include
 )
 
 install(
