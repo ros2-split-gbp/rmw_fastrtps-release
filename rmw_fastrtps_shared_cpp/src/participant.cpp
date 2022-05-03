@@ -15,6 +15,7 @@
 
 #include <string>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "fastdds/dds/core/status/StatusMask.hpp"
@@ -32,8 +33,8 @@
 #include "fastdds/rtps/transport/shared_mem/SharedMemTransportDescriptor.h"
 
 #include "rcpputils/scope_exit.hpp"
+#include "rcutils/env.h"
 #include "rcutils/filesystem.h"
-#include "rcutils/get_env.h"
 
 #include "rmw/allocators.h"
 
@@ -43,42 +44,7 @@
 #include "rmw_fastrtps_shared_cpp/rmw_security_logging.hpp"
 #include "rmw_fastrtps_shared_cpp/utils.hpp"
 
-#if HAVE_SECURITY
-static
-bool
-get_security_file_paths(
-  std::array<std::string, 6> & security_files_paths, const char * secure_root)
-{
-  // here assume only 6 files for security
-  const char * file_names[6] = {
-    "identity_ca.cert.pem", "cert.pem", "key.pem",
-    "permissions_ca.cert.pem", "governance.p7s", "permissions.p7s"
-  };
-  size_t num_files = sizeof(file_names) / sizeof(char *);
-
-  std::string file_prefix("file://");
-
-  for (size_t i = 0; i < num_files; i++) {
-    rcutils_allocator_t allocator = rcutils_get_default_allocator();
-    char * file_path = rcutils_join_path(secure_root, file_names[i], allocator);
-
-    if (!file_path) {
-      return false;
-    }
-
-    if (rcutils_is_readable(file_path)) {
-      security_files_paths[i] = file_prefix + std::string(file_path);
-    } else {
-      allocator.deallocate(file_path, allocator.state);
-      return false;
-    }
-
-    allocator.deallocate(file_path, allocator.state);
-  }
-
-  return true;
-}
-#endif
+#include "rmw_dds_common/security.hpp"
 
 // Private function to create Participant with QoS
 static CustomParticipantInfo *
@@ -223,7 +189,7 @@ rmw_fastrtps_shared_cpp::create_participant(
   domainParticipantQos.name(enclave);
 
   bool leave_middleware_default_qos = false;
-  publishing_mode_t publishing_mode = publishing_mode_t::ASYNCHRONOUS;
+  publishing_mode_t publishing_mode = publishing_mode_t::SYNCHRONOUS;
   const char * env_value;
   const char * error_str;
   error_str = rcutils_get_env("RMW_FASTRTPS_USE_QOS_FROM_XML", &env_value);
@@ -241,16 +207,17 @@ rmw_fastrtps_shared_cpp::create_participant(
       return nullptr;
     }
     if (env_value != nullptr) {
-      // Synchronous publishing
       if (strcmp(env_value, "SYNCHRONOUS") == 0) {
         publishing_mode = publishing_mode_t::SYNCHRONOUS;
+      } else if (strcmp(env_value, "ASYNCHRONOUS") == 0) {
+        publishing_mode = publishing_mode_t::ASYNCHRONOUS;
       } else if (strcmp(env_value, "AUTO") == 0) {
         publishing_mode = publishing_mode_t::AUTO;
-      } else if (strcmp(env_value, "ASYNCHRONOUS") != 0 && strcmp(env_value, "") != 0) {
+      } else if (strcmp(env_value, "") != 0) {
         RCUTILS_LOG_WARN_NAMED(
           "rmw_fastrtps_shared_cpp",
           "Value %s unknown for environment variable RMW_FASTRTPS_PUBLICATION_MODE"
-          ". Using default ASYNCHRONOUS publishing mode.", env_value);
+          ". Using default SYNCHRONOUS publishing mode.", env_value);
       }
     }
   }
@@ -264,36 +231,38 @@ rmw_fastrtps_shared_cpp::create_participant(
   if (security_options->security_root_path) {
     // if security_root_path provided, try to find the key and certificate files
 #if HAVE_SECURITY
-    std::array<std::string, 6> security_files_paths;
-    if (get_security_file_paths(security_files_paths, security_options->security_root_path)) {
+    std::unordered_map<std::string, std::string> security_files_paths;
+    if (rmw_dds_common::get_security_files(
+        "file://", security_options->security_root_path, security_files_paths))
+    {
       eprosima::fastrtps::rtps::PropertyPolicy property_policy;
-      using Property = eprosima::fastrtps::rtps::Property;
       property_policy.properties().emplace_back(
-        Property("dds.sec.auth.plugin", "builtin.PKI-DH"));
+        "dds.sec.auth.plugin", "builtin.PKI-DH");
       property_policy.properties().emplace_back(
-        Property(
-          "dds.sec.auth.builtin.PKI-DH.identity_ca", security_files_paths[0]));
+        "dds.sec.auth.builtin.PKI-DH.identity_ca", security_files_paths["IDENTITY_CA"]);
       property_policy.properties().emplace_back(
-        Property(
-          "dds.sec.auth.builtin.PKI-DH.identity_certificate", security_files_paths[1]));
+        "dds.sec.auth.builtin.PKI-DH.identity_certificate", security_files_paths["CERTIFICATE"]);
       property_policy.properties().emplace_back(
-        Property(
-          "dds.sec.auth.builtin.PKI-DH.private_key", security_files_paths[2]));
+        "dds.sec.auth.builtin.PKI-DH.private_key", security_files_paths["PRIVATE_KEY"]);
       property_policy.properties().emplace_back(
-        Property("dds.sec.crypto.plugin", "builtin.AES-GCM-GMAC"));
+        "dds.sec.crypto.plugin", "builtin.AES-GCM-GMAC");
 
       property_policy.properties().emplace_back(
-        Property(
-          "dds.sec.access.plugin", "builtin.Access-Permissions"));
+        "dds.sec.access.plugin", "builtin.Access-Permissions");
       property_policy.properties().emplace_back(
-        Property(
-          "dds.sec.access.builtin.Access-Permissions.permissions_ca", security_files_paths[3]));
+        "dds.sec.access.builtin.Access-Permissions.permissions_ca",
+        security_files_paths["PERMISSIONS_CA"]);
       property_policy.properties().emplace_back(
-        Property(
-          "dds.sec.access.builtin.Access-Permissions.governance", security_files_paths[4]));
+        "dds.sec.access.builtin.Access-Permissions.governance",
+        security_files_paths["GOVERNANCE"]);
       property_policy.properties().emplace_back(
-        Property(
-          "dds.sec.access.builtin.Access-Permissions.permissions", security_files_paths[5]));
+        "dds.sec.access.builtin.Access-Permissions.permissions",
+        security_files_paths["PERMISSIONS"]);
+
+      if (security_files_paths.count("CRL") > 0) {
+        property_policy.properties().emplace_back(
+          "dds.sec.auth.builtin.PKI-DH.identity_crl", security_files_paths["CRL"]);
+      }
 
       // Configure security logging
       if (!apply_security_logging_configuration(property_policy)) {

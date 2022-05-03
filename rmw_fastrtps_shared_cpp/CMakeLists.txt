@@ -38,6 +38,9 @@ find_package(ament_cmake_ros REQUIRED)
 find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw_dds_common REQUIRED)
+find_package(rosidl_typesupport_introspection_c REQUIRED)
+find_package(rosidl_typesupport_introspection_cpp REQUIRED)
+find_package(tracetools REQUIRED)
 
 find_package(fastrtps_cmake_module REQUIRED)
 find_package(fastcdr REQUIRED CONFIG)
@@ -61,6 +64,7 @@ add_library(rmw_fastrtps_shared_cpp
   src/rmw_compare_gids_equal.cpp
   src/rmw_count.cpp
   src/rmw_event.cpp
+  src/rmw_features.cpp
   src/rmw_get_endpoint_network_flow.cpp
   src/rmw_get_gid_for_publisher.cpp
   src/rmw_get_topic_endpoint_info.cpp
@@ -86,13 +90,14 @@ add_library(rmw_fastrtps_shared_cpp
   src/rmw_wait.cpp
   src/rmw_wait_set.cpp
   src/subscription.cpp
+  src/time_utils.cpp
   src/TypeSupport_impl.cpp
   src/utils.cpp
 )
 target_include_directories(rmw_fastrtps_shared_cpp
   PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-  "$<INSTALL_INTERFACE:include>")
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 target_link_libraries(rmw_fastrtps_shared_cpp
   fastcdr fastrtps
 )
@@ -103,6 +108,9 @@ ament_target_dependencies(rmw_fastrtps_shared_cpp
   "rcutils"
   "rmw"
   "rmw_dds_common"
+  "rosidl_typesupport_introspection_c"
+  "rosidl_typesupport_introspection_cpp"
+  "tracetools"
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
@@ -110,15 +118,21 @@ ament_target_dependencies(rmw_fastrtps_shared_cpp
 target_compile_definitions(${PROJECT_NAME}
 PRIVATE "RMW_FASTRTPS_SHARED_CPP_BUILDING_LIBRARY")
 
-# specific order: dependents before dependencies
-ament_export_include_directories(include)
+# Export old-style CMake variables
+ament_export_include_directories("include/${PROJECT_NAME}")
 ament_export_libraries(rmw_fastrtps_shared_cpp)
+
+# Export modern CMake targets
 ament_export_targets(rmw_fastrtps_shared_cpp)
 
+# specific order: dependents before dependencies
 ament_export_dependencies(rcpputils)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw)
 ament_export_dependencies(rmw_dds_common)
+ament_export_dependencies(rosidl_typesupport_introspection_c)
+ament_export_dependencies(rosidl_typesupport_introspection_cpp)
+ament_export_dependencies(tracetools)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -132,7 +146,7 @@ ament_package(
 
 install(
   DIRECTORY include/
-  DESTINATION include
+  DESTINATION include/${PROJECT_NAME}
 )
 
 install(

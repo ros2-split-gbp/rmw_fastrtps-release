@@ -2,12 +2,61 @@
 Changelog for package rmw_fastrtps_dynamic_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-5.0.2 (2022-04-28)
+6.3.0 (2022-05-03)
+------------------
+* Handle 'best_available' QoS policies (`#598 <https://github.com/ros2/rmw_fastrtps/issues/598>`_)
+* Contributors: Jacob Perron
+
+6.2.1 (2022-03-28)
+------------------
+* Add content filter topic feature (`#513 <https://github.com/ros2/rmw_fastrtps/issues/513>`_)
+* Add sequence numbers to message info structure (`#587 <https://github.com/ros2/rmw_fastrtps/issues/587>`_)
+* Contributors: Chen Lihui, Ivan Santiago Paunovic
+
+6.2.0 (2022-03-01)
+------------------
+* Add EventsExecutor (`#468 <https://github.com/ros2/rmw_fastrtps/issues/468>`_)
+* Install headers to include/${PROJECT_NAME} (`#578 <https://github.com/ros2/rmw_fastrtps/issues/578>`_)
+* Contributors: Shane Loretz, iRobot ROS
+
+6.1.2 (2022-01-14)
 ------------------
 
-5.0.1 (2021-08-18)
+6.1.1 (2021-12-17)
 ------------------
-* [Galactic] Loan messages implementation (`#547 <https://github.com/ros2/rmw_fastrtps/issues/547>`_)
+
+6.1.0 (2021-11-19)
+------------------
+* Add client/service QoS getters. (`#560 <https://github.com/ros2/rmw_fastrtps/issues/560>`_)
+* Contributors: mauropasse
+
+6.0.0 (2021-09-15)
+------------------
+
+5.2.2 (2021-08-09)
+------------------
+* Correctly recalculate serialized size on bounded sequences. (`#540 <https://github.com/ros2/rmw_fastrtps/issues/540>`_)
+* Fix type size alignment. (`#550 <https://github.com/ros2/rmw_fastrtps/issues/550>`_)
+* Contributors: Miguel Company
+
+5.2.1 (2021-06-30)
+------------------
+
+5.2.0 (2021-06-04)
+------------------
+* Add rmw_publisher_wait_for_all_acked support. (`#519 <https://github.com/ros2/rmw_fastrtps/issues/519>`_)
+* Contributors: Barry Xu
+
+5.1.0 (2021-05-12)
+------------------
+* Loan messages implementation (`#523 <https://github.com/ros2/rmw_fastrtps/issues/523>`_)
+  * Added is_plain\_ attribute to base TypeSupport.
+  * Added new methods to base TypeSupport.
+  * Implementation of rmw_borrow_loaned_message.
+  * Implementation of rmw_return_loaned_message_from_publisher.
+  * Enable loan messages on publishers of plain types.
+  * Implementation for taking loaned messages.
+  * Enable loan messages on subscriptions of plain types.
 * Contributors: Miguel Company
 
 5.0.0 (2021-04-06)

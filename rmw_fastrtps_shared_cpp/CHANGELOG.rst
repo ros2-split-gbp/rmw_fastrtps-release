@@ -2,16 +2,77 @@
 Changelog for package rmw_fastrtps_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-5.0.2 (2022-04-28)
+6.3.0 (2022-05-03)
 ------------------
-* Export rmw_dds_common as an rmw_fastrtps_shared_cpp dependency (`#530 <https://github.com/ros2/rmw_fastrtps/issues/530>`_) (`#567 <https://github.com/ros2/rmw_fastrtps/issues/567>`_)
-* Contributors: Michel Hidalgo
 
-5.0.1 (2021-08-18)
+6.2.1 (2022-03-28)
 ------------------
-* [Galactic] Loan messages implementation (`#547 <https://github.com/ros2/rmw_fastrtps/issues/547>`_)
-* Support for SubscriptionOptions::ignore_local_publications (`#536 <https://github.com/ros2/rmw_fastrtps/issues/536>`_) (`#549 <https://github.com/ros2/rmw_fastrtps/issues/549>`_)
-* Contributors: Michel Hidalgo, Miguel Company
+* Address linter waning for windows. (`#592 <https://github.com/ros2/rmw_fastrtps/issues/592>`_)
+* Add pub/sub init, publish and take instrumentation using tracetools (`#591 <https://github.com/ros2/rmw_fastrtps/issues/591>`_)
+* Add content filter topic feature (`#513 <https://github.com/ros2/rmw_fastrtps/issues/513>`_)
+* Add sequence numbers to message info structure (`#587 <https://github.com/ros2/rmw_fastrtps/issues/587>`_)
+* Contributors: Chen Lihui, Christophe Bedard, Ivan Santiago Paunovic, Tomoya Fujita
+
+6.2.0 (2022-03-01)
+------------------
+* Add EventsExecutor (`#468 <https://github.com/ros2/rmw_fastrtps/issues/468>`_)
+* Complete events support (`#583 <https://github.com/ros2/rmw_fastrtps/issues/583>`_)
+* Install headers to include/${PROJECT_NAME} (`#578 <https://github.com/ros2/rmw_fastrtps/issues/578>`_)
+* Change default to synchronous (`#571 <https://github.com/ros2/rmw_fastrtps/issues/571>`_)
+* Contributors: Audrow Nash, Miguel Company, Shane Loretz, iRobot ROS
+
+6.1.2 (2022-01-14)
+------------------
+* Fix cpplint error (`#574 <https://github.com/ros2/rmw_fastrtps/issues/574>`_)
+* Contributors: Jacob Perron
+
+6.1.1 (2021-12-17)
+------------------
+* Fixes for uncrustify 0.72 (`#572 <https://github.com/ros2/rmw_fastrtps/issues/572>`_)
+* Contributors: Chris Lalancette
+
+6.1.0 (2021-11-19)
+------------------
+* Add client/service QoS getters. (`#560 <https://github.com/ros2/rmw_fastrtps/issues/560>`_)
+* Fix QoS depth settings for clients/service being ignored. (`#564 <https://github.com/ros2/rmw_fastrtps/issues/564>`_)
+* Contributors: Chen Lihui, mauropasse
+
+6.0.0 (2021-09-15)
+------------------
+* Update rmw_context_impl_t definition. (`#558 <https://github.com/ros2/rmw_fastrtps/issues/558>`_)
+* Update the LoanManager to do internal locking. (`#552 <https://github.com/ros2/rmw_fastrtps/issues/552>`_)
+* Contributors: Chris Lalancette, Michel Hidalgo
+
+5.2.2 (2021-08-09)
+------------------
+* Pass the CRL down to Fast-DDS if available. (`#546 <https://github.com/ros2/rmw_fastrtps/issues/546>`_)
+* Contributors: Chris Lalancette
+
+5.2.1 (2021-06-30)
+------------------
+* Use the new rmw_dds_common::get_security_files (`#544 <https://github.com/ros2/rmw_fastrtps/issues/544>`_)
+* Support for SubscriptionOptions::ignore_local_publications (`#536 <https://github.com/ros2/rmw_fastrtps/issues/536>`_)
+* Change links from index.ros.org -> docs.ros.org (`#539 <https://github.com/ros2/rmw_fastrtps/issues/539>`_)
+* Contributors: Chris Lalancette, Jose Antonio Moral
+
+5.2.0 (2021-06-04)
+------------------
+* Add rmw_publisher_wait_for_all_acked support. (`#519 <https://github.com/ros2/rmw_fastrtps/issues/519>`_)
+* Contributors: Barry Xu
+
+5.1.0 (2021-05-12)
+------------------
+* Loan messages implementation (`#523 <https://github.com/ros2/rmw_fastrtps/issues/523>`_)
+  * Added is_plain\_ attribute to base TypeSupport.
+  * Added new methods to base TypeSupport.
+  * Implementation of rmw_borrow_loaned_message.
+  * Implementation of rmw_return_loaned_message_from_publisher.
+  * Enable loan messages on publishers of plain types.
+  * Implementation for taking loaned messages.
+  * Enable loan messages on subscriptions of plain types.
+* Export rmw_dds_common as an rmw_fastrtps_shared_cpp dependency (`#530 <https://github.com/ros2/rmw_fastrtps/issues/530>`_)
+* Update includes after rcutils/get_env.h deprecation (`#529 <https://github.com/ros2/rmw_fastrtps/issues/529>`_)
+* Contributors: Christophe Bedard, Michel Hidalgo, Miguel Company
 
 5.0.0 (2021-04-06)
 ------------------

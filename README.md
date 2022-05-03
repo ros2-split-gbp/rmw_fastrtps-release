@@ -1,11 +1,10 @@
 # ROS 2 Middleware Implementation for eProsima's Fast DDS
 
-`rmw_fastrtps` constitutes __[ROS 2](https://index.ros.org/doc/ros2/) default middleware implementation__, providing an interface between ROS 2 and [eProsima's](https://www.eprosima.com/index.php) [Fast DDS](https://github.com/eProsima/Fast-DDS) middleware.
+`rmw_fastrtps` is a [ROS 2](https://docs.ros.org/en/rolling) middleware implementation, providing an interface between ROS 2 and [eProsima's](https://www.eprosima.com/index.php) [Fast DDS](https://github.com/eProsima/Fast-DDS) middleware.
 
 ## Getting started
 This implementation is available in all ROS 2 distributions, both from binaries and from sources.
-You do not need to do anything in order to use Fast DDS as your ROS 2 middleware layer (since it is the default implementation).
-However, you can still specify it in two different ways:
+You can specify Fast DDS as your ROS 2 middleware layer in two different ways:
 
 1. Exporting `RMW_IMPLEMENTATION` environment variable:
     ```bash
@@ -28,7 +27,7 @@ You can however set it to `rmw_fastrtps_dynamic_cpp` using the environment varia
 
 ## Advance usage
 
-ROS 2 only allows for the configuration of certain middleware QoS (see [ROS 2 QoS policies](https://index.ros.org/doc/ros2/Concepts/About-Quality-of-Service-Settings/#qos-policies)).
+ROS 2 only allows for the configuration of certain middleware QoS (see [ROS 2 QoS policies](https://docs.ros.org/en/foxy/Concepts/About-Quality-of-Service-Settings.html#qos-policies)).
 In addition to ROS 2 QoS policies, `rmw_fastrtps` sets two more Fast DDS configurable parameters:
 
 * History memory policy: `PREALLOCATED_WITH_REALLOC_MEMORY_MODE`
@@ -41,7 +40,7 @@ However, `rmw_fastrtps` offers the possibility to further configure Fast DDS:
 
 ### Change publication mode
 
-Fast DDS feats two different [publication modes](https://fast-dds.docs.eprosima.com/en/v2.1.0/fastdds/dds_layer/core/policy/eprosimaExtensions.html?highlight=synchronous#publishmodeqospolicykind): synchronous and asynchronous.
+Fast DDS features two different [publication modes](https://fast-dds.docs.eprosima.com/en/v2.1.0/fastdds/dds_layer/core/policy/eprosimaExtensions.html?highlight=synchronous#publishmodeqospolicykind): synchronous and asynchronous.
 To learn more about the implications of choosing one mode over the other, please refer to [DDS: Asynchronous vs Synchronous Publishing](https://www.eprosima.com/index.php/resources-all/performance/dds-asynchronous-vs-synchronous-publishing):
 
 `rmw_fastrtps` offers an easy way to change Fast DDS' publication mode without the need of defining a XML file. That is environment variable `RMW_FASTRTPS_PUBLICATION_MODE`.
@@ -56,7 +55,7 @@ This entails that any blocking call occurring during the write operation would b
 It is important to note that this mode typically yields higher throughput rates at lower latencies, since the notification and context switching between threads is not present.
 * `AUTO`: let Fast DDS select the publication mode. This implies using the publication mode set in the XML file or, failing that, the default value set in Fast DDS (which currently is set to `SYNCHRONOUS`).
 
-If `RMW_FASTRTPS_PUBLICATION_MODE` is not set, then both `rmw_fastrtps_cpp` and `rmw_fastrtps_dynamic_cpp` behave as if it were set to `ASYNCHRONOUS`.
+If `RMW_FASTRTPS_PUBLICATION_MODE` is not set, then both `rmw_fastrtps_cpp` and `rmw_fastrtps_dynamic_cpp` behave as if it were set to `SYNCHRONOUS`.
 
 ### Full QoS configuration
 
@@ -111,8 +110,22 @@ For doing so, `rmw_fastrtps` locates profiles in the XML based on topic names ab
 
 ##### Creating publishers/subscriptions with different profiles
 
-To configure a publisher/subscription, define a `<publisher>`/`<subscriber>` profile with attribute `profile_name=topic_name`, where topic name is the name of the topic before mangling, i.e. the topic name used to create the publisher/subscription.
+To configure a publisher/subscription, define a `<publisher>`/`<subscriber>` profile with attribute `profile_name=topic_name`, where topic name is the name of the topic prepended by the node namespace (which defaults to `""` if not specified), i.e. the node's namespace followed by topic name used to create the publisher/subscription.
+Mind that topic names always start with `/` (it is added when creating the topic if not present), and that namespace and topic name are always separated by one `/`.
 If such profile is not defined, `rmw_fastrtps` attempts to load the `<publisher>`/`<subscriber>` profile with attribute `is_default_profile="true"`.
+The following table presents different combinations of node namespaces and user specified topic names, as well as the resulting topic names and the suitable profile names:
+
+| User specified topic name | Node namespace | Final topic name | Profile name |
+|-|-|-|-|
+| `chatter` | DEFAULT (`""`) | `/chatter` | `/chatter` |
+| `chatter` | `test_namespace` | `/test_namespace/chatter` | `/test_namespace/chatter` |
+| `chatter` | `/test_namespace` | `/test_namespace/chatter` | `/test_namespace/chatter` |
+| `/chatter` | `test_namespace` | `/chatter` | `/chatter` |
+| `/chatter` | `/test_namespace` | `/chatter` | `/chatter` |
+
+
+**IMPORTANT**: As shown in the table, node namespaces are NOT prepended to user specified topic names starting with `/`, a.k.a Fully Qualified Names (FQN).
+For a complete description of topic name remapping please refer to [Remapping Names](http://design.ros2.org/articles/static_remapping.html).
 
 ##### Creating services with different profiles
 

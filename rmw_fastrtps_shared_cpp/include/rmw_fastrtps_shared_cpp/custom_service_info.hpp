@@ -31,6 +31,7 @@
 #include "fastdds/dds/subscriber/DataReader.hpp"
 #include "fastdds/dds/subscriber/DataReaderListener.hpp"
 #include "fastdds/dds/subscriber/SampleInfo.hpp"
+#include "fastdds/dds/subscriber/qos/DataReaderQos.hpp"
 #include "fastdds/dds/topic/TypeSupport.hpp"
 
 #include "fastdds/rtps/common/Guid.h"
@@ -38,6 +39,8 @@
 #include "fastdds/rtps/common/SampleIdentity.h"
 
 #include "rcpputils/thread_safety_annotations.hpp"
+
+#include "rmw/event_callback_type.h"
 
 #include "rmw_fastrtps_shared_cpp/guid_utils.hpp"
 #include "rmw_fastrtps_shared_cpp/TypeSupport.hpp"
@@ -225,6 +228,12 @@ public:
         info_->pub_listener_->endpoint_add_reader_and_writer(reader_guid, writer_guid);
 
         std::lock_guard<std::mutex> lock(internalMutex_);
+        const eprosima::fastrtps::HistoryQosPolicy & history = reader->get_qos().history();
+        if (eprosima::fastrtps::KEEP_LAST_HISTORY_QOS == history.kind) {
+          while (list.size() >= static_cast<size_t>(history.depth)) {
+            list.pop_front();
+          }
+        }
 
         if (conditionMutex_ != nullptr) {
           std::unique_lock<std::mutex> clock(*conditionMutex_);
@@ -238,6 +247,14 @@ public:
         } else {
           list.push_back(request);
           list_has_data_.store(true);
+        }
+
+        std::unique_lock<std::mutex> lock_mutex(on_new_request_m_);
+
+        if (on_new_request_cb_) {
+          on_new_request_cb_(user_data_, 1);
+        } else {
+          unread_count_++;
         }
       }
     }
@@ -289,6 +306,29 @@ public:
     return list_has_data_.load();
   }
 
+  // Provide handlers to perform an action when a
+  // new event from this listener has ocurred
+  void
+  set_on_new_request_callback(
+    const void * user_data,
+    rmw_event_callback_t callback)
+  {
+    std::unique_lock<std::mutex> lock_mutex(on_new_request_m_);
+
+    if (callback) {
+      // Push events arrived before setting the the executor callback
+      if (unread_count_) {
+        callback(user_data, unread_count_);
+        unread_count_ = 0;
+      }
+      user_data_ = user_data;
+      on_new_request_cb_ = callback;
+    } else {
+      user_data_ = nullptr;
+      on_new_request_cb_ = nullptr;
+    }
+  }
+
 private:
   CustomServiceInfo * info_;
   std::mutex internalMutex_;
@@ -296,6 +336,11 @@ private:
   std::atomic_bool list_has_data_;
   std::mutex * conditionMutex_ RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
   std::condition_variable * conditionVariable_ RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
+
+  rmw_event_callback_t on_new_request_cb_{nullptr};
+  const void * user_data_{nullptr};
+  std::mutex on_new_request_m_;
+  uint64_t unread_count_ = 0;
 };
 
 #endif  // RMW_FASTRTPS_SHARED_CPP__CUSTOM_SERVICE_INFO_HPP_

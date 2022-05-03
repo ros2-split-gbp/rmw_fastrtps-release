@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <memory>
+#include <utility>
 
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
@@ -33,6 +34,8 @@
 #include "rmw_fastrtps_shared_cpp/TypeSupport.hpp"
 #include "rmw_fastrtps_shared_cpp/utils.hpp"
 
+#include "tracetools/tracetools.h"
+
 namespace rmw_fastrtps_shared_cpp
 {
 
@@ -46,6 +49,11 @@ _assign_message_info(
 {
   message_info->source_timestamp = sinfo->source_timestamp.to_ns();
   message_info->received_timestamp = sinfo->reception_timestamp.to_ns();
+  auto fastdds_sn = sinfo->sample_identity.sequence_number();
+  message_info->publication_sequence_number =
+    (static_cast<uint64_t>(fastdds_sn.high) << 32) |
+    static_cast<uint64_t>(fastdds_sn.low);
+  message_info->reception_sequence_number = RMW_MESSAGE_INFO_SEQUENCE_NUMBER_UNSUPPORTED;
   rmw_gid_t * sender_gid = &message_info->publisher_gid;
   sender_gid->implementation_identifier = identifier;
   memset(sender_gid->data, 0, RMW_GID_STORAGE_SIZE);
@@ -108,6 +116,12 @@ _take(
     }
   }
 
+  TRACEPOINT(
+    rmw_take,
+    static_cast<const void *>(subscription),
+    static_cast<const void *>(ros_message),
+    (message_info ? message_info->source_timestamp : 0LL),
+    *taken);
   return RMW_RET_OK;
 }
 
@@ -401,8 +415,32 @@ struct LoanManager
   {
   }
 
+  void add_item(std::unique_ptr<Item> item)
+  {
+    std::lock_guard<std::mutex> guard(mtx);
+    items.push_back(std::move(item));
+  }
+
+  std::unique_ptr<Item> erase_item(void * loaned_message)
+  {
+    std::unique_ptr<Item> ret{nullptr};
+
+    std::lock_guard<std::mutex> guard(mtx);
+    for (auto it = items.begin(); it != items.end(); ++it) {
+      if (loaned_message == (*it)->data_seq.buffer()[0]) {
+        ret = std::move(*it);
+        items.erase(it);
+        break;
+      }
+    }
+
+    return ret;
+  }
+
+private:
   std::mutex mtx;
-  eprosima::fastrtps::ResourceLimitedVector<Item> items RCPPUTILS_TSA_GUARDED_BY(mtx);
+  using ItemVector = eprosima::fastrtps::ResourceLimitedVector<std::unique_ptr<Item>>;
+  ItemVector items RCPPUTILS_TSA_GUARDED_BY(mtx);
 };
 
 void
@@ -440,13 +478,8 @@ __rmw_take_loaned_message_internal(
   RMW_CHECK_ARGUMENT_FOR_NULL(taken, RMW_RET_INVALID_ARGUMENT);
 
   auto info = static_cast<CustomSubscriberInfo *>(subscription->data);
-  auto loan_mgr = info->loan_manager_;
-  std::unique_lock<std::mutex> guard(loan_mgr->mtx);
-  auto item = loan_mgr->items.emplace_back();
-  if (nullptr == item) {
-    RMW_SET_ERROR_MSG("Out of resources for loaned message info");
-    return RMW_RET_BAD_ALLOC;
-  }
+
+  auto item = std::make_unique<rmw_fastrtps_shared_cpp::LoanManager::Item>();
 
   while (ReturnCode_t::RETCODE_OK == info->data_reader_->take(item->data_seq, item->info_seq, 1)) {
     if (item->info_seq[0].valid_data) {
@@ -456,6 +489,9 @@ __rmw_take_loaned_message_internal(
       *loaned_message = item->data_seq.buffer()[0];
       *taken = true;
       info->listener_->update_has_data(info->data_reader_);
+
+      info->loan_manager_->add_item(std::move(item));
+
       return RMW_RET_OK;
     }
 
@@ -464,7 +500,6 @@ __rmw_take_loaned_message_internal(
   }
 
   // No data available, return loan information.
-  loan_mgr->items.pop_back();
   *taken = false;
   info->listener_->update_has_data(info->data_reader_);
   return RMW_RET_OK;
@@ -487,17 +522,15 @@ __rmw_return_loaned_message_from_subscription(
   RMW_CHECK_ARGUMENT_FOR_NULL(loaned_message, RMW_RET_INVALID_ARGUMENT);
 
   auto info = static_cast<CustomSubscriberInfo *>(subscription->data);
-  auto loan_mgr = info->loan_manager_;
-  std::lock_guard<std::mutex> guard(loan_mgr->mtx);
-  for (auto it = loan_mgr->items.begin(); it != loan_mgr->items.end(); ++it) {
-    if (loaned_message == it->data_seq.buffer()[0]) {
-      if (!info->data_reader_->return_loan(it->data_seq, it->info_seq)) {
-        RMW_SET_ERROR_MSG("Error returning loan");
-        return RMW_RET_ERROR;
-      }
-      loan_mgr->items.erase(it);
-      return RMW_RET_OK;
+  std::unique_ptr<rmw_fastrtps_shared_cpp::LoanManager::Item> item;
+  item = info->loan_manager_->erase_item(loaned_message);
+  if (item != nullptr) {
+    if (!info->data_reader_->return_loan(item->data_seq, item->info_seq)) {
+      RMW_SET_ERROR_MSG("Error returning loan");
+      return RMW_RET_ERROR;
     }
+
+    return RMW_RET_OK;
   }
 
   RMW_SET_ERROR_MSG("Trying to return message not loaned by this subscription");
