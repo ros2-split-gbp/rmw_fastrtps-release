@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rcutils/macros.h"
+#include "fastrtps/subscriber/Subscriber.h"
 
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
@@ -47,7 +47,7 @@ check_wait_set_for_data(
   if (clients) {
     for (size_t i = 0; i < clients->client_count; ++i) {
       void * data = clients->clients[i];
-      auto custom_client_info = static_cast<CustomClientInfo *>(data);
+      CustomClientInfo * custom_client_info = static_cast<CustomClientInfo *>(data);
       if (custom_client_info && custom_client_info->listener_->hasData()) {
         return true;
       }
@@ -57,7 +57,7 @@ check_wait_set_for_data(
   if (services) {
     for (size_t i = 0; i < services->service_count; ++i) {
       void * data = services->services[i];
-      auto custom_service_info = static_cast<CustomServiceInfo *>(data);
+      CustomServiceInfo * custom_service_info = static_cast<CustomServiceInfo *>(data);
       if (custom_service_info && custom_service_info->listener_->hasData()) {
         return true;
       }
@@ -99,9 +99,6 @@ __rmw_wait(
   rmw_wait_set_t * wait_set,
   const rmw_time_t * wait_timeout)
 {
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RMW_RET_INVALID_ARGUMENT);
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
-
   RMW_CHECK_ARGUMENT_FOR_NULL(wait_set, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     wait set handle,
@@ -114,7 +111,7 @@ __rmw_wait(
   // error.
   // - Heap is corrupt.
   // In all three cases, it's better if this crashes soon enough.
-  auto wait_set_info = static_cast<CustomWaitsetInfo *>(wait_set->data);
+  CustomWaitsetInfo * wait_set_info = static_cast<CustomWaitsetInfo *>(wait_set->data);
   std::mutex * conditionMutex = &wait_set_info->condition_mutex;
   std::condition_variable * conditionVariable = &wait_set_info->condition;
 
@@ -129,7 +126,7 @@ __rmw_wait(
   if (clients) {
     for (size_t i = 0; i < clients->client_count; ++i) {
       void * data = clients->clients[i];
-      auto custom_client_info = static_cast<CustomClientInfo *>(data);
+      CustomClientInfo * custom_client_info = static_cast<CustomClientInfo *>(data);
       custom_client_info->listener_->attachCondition(conditionMutex, conditionVariable);
     }
   }
@@ -205,7 +202,7 @@ __rmw_wait(
   if (clients) {
     for (size_t i = 0; i < clients->client_count; ++i) {
       void * data = clients->clients[i];
-      auto custom_client_info = static_cast<CustomClientInfo *>(data);
+      CustomClientInfo * custom_client_info = static_cast<CustomClientInfo *>(data);
       custom_client_info->listener_->detachCondition();
       if (!custom_client_info->listener_->hasData()) {
         clients->clients[i] = 0;

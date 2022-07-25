@@ -32,6 +32,7 @@ create_subscription(
   const rmw_subscription_options_t * subscription_options,
   bool keyed,
   bool create_subscription_listener);
+
 }  // namespace rmw_fastrtps_cpp
 
 #endif  // RMW_FASTRTPS_CPP__SUBSCRIPTION_HPP_

@@ -15,24 +15,23 @@
 #ifndef RMW_FASTRTPS_DYNAMIC_CPP__GET_PUBLISHER_HPP_
 #define RMW_FASTRTPS_DYNAMIC_CPP__GET_PUBLISHER_HPP_
 
-#include "fastdds/dds/publisher/DataWriter.hpp"
-
+#include "fastrtps/publisher/Publisher.h"
 #include "rmw/rmw.h"
 #include "rmw_fastrtps_dynamic_cpp/visibility_control.h"
 
 namespace rmw_fastrtps_dynamic_cpp
 {
 
-/// Return a native Fast DDS DataWriter handle.
+/// Return a native FastRTPS publisher handle.
 /**
  * The function returns `NULL` when either the publisher handle is `NULL` or
  * when the publisher handle is from a different rmw implementation.
  *
- * \return native Fast DDS DataWriter handle if successful, otherwise `NULL`
+ * \return native FastRTPS publisher handle if successful, otherwise `NULL`
  */
 RMW_FASTRTPS_DYNAMIC_CPP_PUBLIC
-eprosima::fastdds::dds::DataWriter *
-get_datawriter(rmw_publisher_t * publisher);
+eprosima::fastrtps::Publisher *
+get_publisher(rmw_publisher_t * publisher);
 
 }  // namespace rmw_fastrtps_dynamic_cpp
 

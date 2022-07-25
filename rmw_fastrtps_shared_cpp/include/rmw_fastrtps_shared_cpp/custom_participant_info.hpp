@@ -20,14 +20,10 @@
 #include <string>
 #include <vector>
 
-#include "fastdds/dds/domain/DomainParticipant.hpp"
-#include "fastdds/dds/domain/DomainParticipantListener.hpp"
-#include "fastdds/dds/publisher/Publisher.hpp"
-#include "fastdds/dds/subscriber/Subscriber.hpp"
-
-#include "fastdds/rtps/participant/ParticipantDiscoveryInfo.h"
-#include "fastdds/rtps/reader/ReaderDiscoveryInfo.h"
-#include "fastdds/rtps/writer/WriterDiscoveryInfo.h"
+#include "fastrtps/rtps/common/InstanceHandle.h"
+#include "fastrtps/attributes/ParticipantAttributes.h"
+#include "fastrtps/participant/Participant.h"
+#include "fastrtps/participant/ParticipantListener.h"
 
 #include "rcpputils/thread_safety_annotations.hpp"
 #include "rcutils/logging_macros.h"
@@ -46,34 +42,20 @@ using rmw_dds_common::operator<<;
 
 class ParticipantListener;
 
-enum class publishing_mode_t
-{
-  ASYNCHRONOUS,  // Asynchronous publishing mode
-  SYNCHRONOUS,   // Synchronous publishing mode
-  AUTO           // Use publishing mode set in XML file or Fast DDS default
-};
-
 typedef struct CustomParticipantInfo
 {
-  eprosima::fastdds::dds::DomainParticipant * participant_{nullptr};
-  ParticipantListener * listener_{nullptr};
+  eprosima::fastrtps::Participant * participant;
+  ::ParticipantListener * listener;
 
-  eprosima::fastdds::dds::Publisher * publisher_{nullptr};
-  eprosima::fastdds::dds::Subscriber * subscriber_{nullptr};
-
-  // Protects creation and destruction of topics, readers and writers
-  mutable std::mutex entity_creation_mutex_;
-
-  // Flag to establish if the QoS of the DomainParticipant,
-  // its DataWriters, and its DataReaders are going
+  // Flag to establish if the QoS of the participant,
+  // its publishers and its subscribers are going
   // to be configured only from an XML file or if
   // their settings are going to be overwritten by code
   // with the default configuration.
   bool leave_middleware_default_qos;
-  publishing_mode_t publishing_mode;
 } CustomParticipantInfo;
 
-class ParticipantListener : public eprosima::fastdds::dds::DomainParticipantListener
+class ParticipantListener : public eprosima::fastrtps::ParticipantListener
 {
 public:
   explicit ParticipantListener(
@@ -83,8 +65,8 @@ public:
     identifier_(identifier)
   {}
 
-  void on_participant_discovery(
-    eprosima::fastdds::dds::DomainParticipant *,
+  void onParticipantDiscovery(
+    eprosima::fastrtps::Participant *,
     eprosima::fastrtps::rtps::ParticipantDiscoveryInfo && info) override
   {
     switch (info.status) {
@@ -117,8 +99,8 @@ public:
     }
   }
 
-  void on_subscriber_discovery(
-    eprosima::fastdds::dds::DomainParticipant *,
+  void onSubscriberDiscovery(
+    eprosima::fastrtps::Participant *,
     eprosima::fastrtps::rtps::ReaderDiscoveryInfo && info) override
   {
     if (eprosima::fastrtps::rtps::ReaderDiscoveryInfo::CHANGED_QOS_READER != info.status) {
@@ -128,8 +110,8 @@ public:
     }
   }
 
-  void on_publisher_discovery(
-    eprosima::fastdds::dds::DomainParticipant *,
+  void onPublisherDiscovery(
+    eprosima::fastrtps::Participant *,
     eprosima::fastrtps::rtps::WriterDiscoveryInfo && info) override
   {
     if (eprosima::fastrtps::rtps::WriterDiscoveryInfo::CHANGED_QOS_WRITER != info.status) {
@@ -147,7 +129,7 @@ private:
     {
       if (is_alive) {
         rmw_qos_profile_t qos_profile = rmw_qos_profile_unknown;
-        rtps_qos_to_rmw_qos(proxyData.m_qos, &qos_profile);
+        dds_qos_to_rmw_qos(proxyData.m_qos, &qos_profile);
 
         context->graph_cache.add_entity(
           rmw_fastrtps_shared_cpp::create_rmw_gid(

@@ -17,18 +17,17 @@
 
 #include "rcutils/logging_macros.h"
 
-#include "fastdds/dds/log/Log.hpp"
+#include "fastrtps/log/Log.h"
 
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 
 namespace rmw_fastrtps_shared_cpp
 {
+using eprosima::fastrtps::Log;
 
 rmw_ret_t
 __rmw_set_log_severity(rmw_log_severity_t severity)
 {
-  using eprosima::fastdds::dds::Log;
-
   Log::Kind log_kind;
 
   switch (severity) {
@@ -50,7 +49,7 @@ __rmw_set_log_severity(rmw_log_severity_t severity)
       return RMW_RET_ERROR;
   }
 
-  Log::SetVerbosity(log_kind);
+  eprosima::fastrtps::Log::SetVerbosity(log_kind);
 
   return RMW_RET_OK;
 }

@@ -15,13 +15,13 @@
 #ifndef RMW_FASTRTPS_DYNAMIC_CPP__TYPESUPPORT_IMPL_HPP_
 #define RMW_FASTRTPS_DYNAMIC_CPP__TYPESUPPORT_IMPL_HPP_
 
+#include <fastcdr/FastBuffer.h>
+#include <fastcdr/Cdr.h>
+#include <fastcdr/exceptions/Exception.h>
+
 #include <cassert>
 #include <string>
 #include <vector>
-
-#include "fastcdr/Cdr.h"
-#include "fastcdr/FastBuffer.h"
-#include "fastcdr/exceptions/Exception.h"
 
 #include "rmw_fastrtps_dynamic_cpp/TypeSupport.hpp"
 #include "rmw_fastrtps_dynamic_cpp/macros.hpp"
@@ -66,7 +66,6 @@ TypeSupport<MembersType>::TypeSupport(const void * ros_type_support)
 {
   m_isGetKeyDefined = false;
   max_size_bound_ = false;
-  is_plain_ = false;
 }
 
 // C++ specialization
@@ -200,6 +199,32 @@ void serialize_field<std::wstring>(
   }
 }
 
+inline
+void * get_subros_message(
+  const rosidl_typesupport_introspection_cpp::MessageMember * member,
+  void * field,
+  size_t index,
+  size_t,
+  bool)
+{
+  return member->get_function(field, index);
+}
+
+inline
+void * get_subros_message(
+  const rosidl_typesupport_introspection_c__MessageMember * member,
+  void * field,
+  size_t index,
+  size_t array_size,
+  bool is_upper_bound)
+{
+  if (array_size && !is_upper_bound) {
+    return member->get_function(&field, index);
+  }
+
+  return member->get_function(field, index);
+}
+
 template<typename MembersType>
 bool TypeSupport<MembersType>::serializeROSmessage(
   eprosima::fastcdr::Cdr & ser,
@@ -286,7 +311,11 @@ bool TypeSupport<MembersType>::serializeROSmessage(
               return false;
             }
             for (size_t index = 0; index < array_size; ++index) {
-              serializeROSmessage(ser, sub_members, member->get_function(field, index));
+              serializeROSmessage(
+                ser, sub_members,
+                get_subros_message(
+                  member, field, index, member->array_size_,
+                  member->is_upper_bound_));
             }
           }
         }
@@ -545,7 +574,9 @@ size_t TypeSupport<MembersType>::getEstimatedSerializedSize(
             for (size_t index = 0; index < array_size; ++index) {
               current_alignment += getEstimatedSerializedSize(
                 sub_members,
-                member->get_function(field, index),
+                get_subros_message(
+                  member, field, index, member->array_size_,
+                  member->is_upper_bound_),
                 current_alignment);
             }
           }
@@ -799,7 +830,12 @@ bool TypeSupport<MembersType>::deserializeROSmessage(
               return false;
             }
             for (size_t index = 0; index < array_size; ++index) {
-              if (!deserializeROSmessage(deser, sub_members, member->get_function(field, index))) {
+              if (!deserializeROSmessage(
+                  deser, sub_members,
+                  get_subros_message(
+                    member, field, index, member->array_size_,
+                    member->is_upper_bound_)))
+              {
                 return false;
               }
             }
@@ -830,15 +866,9 @@ size_t TypeSupport<MembersType>::calculateMaxSerializedSize(
     size_t array_size = 1;
     if (member->is_array_) {
       array_size = member->array_size_;
-
-      // Whether it is unbounded.
-      if (0u == array_size) {
-        this->max_size_bound_ = false;
-      }
-
       // Whether it is a sequence.
       if (0 == array_size || member->is_upper_bound_) {
-        this->is_plain_ = false;
+        this->max_size_bound_ = false;
         current_alignment += padding +
           eprosima::fastcdr::Cdr::alignment(current_alignment, padding);
       }
@@ -873,7 +903,6 @@ size_t TypeSupport<MembersType>::calculateMaxSerializedSize(
       case ::rosidl_typesupport_introspection_cpp::ROS_TYPE_WSTRING:
         {
           this->max_size_bound_ = false;
-          this->is_plain_ = false;
           size_t character_size =
             (member->type_id_ == rosidl_typesupport_introspection_cpp::ROS_TYPE_WSTRING) ? 4 : 1;
           for (size_t index = 0; index < array_size; ++index) {
@@ -903,7 +932,7 @@ template<typename MembersType>
 size_t TypeSupport<MembersType>::getEstimatedSerializedSize(
   const void * ros_message, const void * impl) const
 {
-  if (is_plain_) {
+  if (max_size_bound_) {
     return m_typeSize;
   }
 

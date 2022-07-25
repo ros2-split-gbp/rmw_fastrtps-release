@@ -24,8 +24,14 @@
 
 #include "fastcdr/FastBuffer.h"
 
+#include "fastrtps/subscriber/SampleInfo.h"
+#include "fastrtps/subscriber/Subscriber.h"
+#include "fastrtps/subscriber/SubscriberListener.h"
+#include "fastrtps/participant/Participant.h"
+#include "fastrtps/publisher/Publisher.h"
+#include "fastrtps/publisher/PublisherListener.h"
+
 #include "rmw/event.h"
-#include "rmw/event_callback_type.h"
 
 #include "rmw_fastrtps_shared_cpp/TypeSupport.hpp"
 
@@ -59,17 +65,6 @@ public:
     * \return `false` if data was not available, in this case nothing was written to event_info.
     */
   virtual bool takeNextEvent(rmw_event_type_t event_type, void * event_info) = 0;
-
-  // Provide handlers to perform an action when a
-  // new event from this listener has ocurred
-  virtual void set_on_new_event_callback(
-    const void * user_data,
-    rmw_event_callback_t callback) = 0;
-
-  rmw_event_callback_t on_new_event_cb_{nullptr};
-  const void * user_data_{nullptr};
-  uint64_t unread_events_count_ = 0;
-  std::mutex on_new_event_m_;
 };
 
 class EventListenerInterface::ConditionalScopedLock
