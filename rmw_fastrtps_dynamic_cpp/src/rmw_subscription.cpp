@@ -17,7 +17,10 @@
 
 #include "rmw/allocators.h"
 #include "rmw/error_handling.h"
+#include "rmw/get_topic_endpoint_info.h"
 #include "rmw/rmw.h"
+
+#include "rmw_dds_common/qos.hpp"
 
 #include "rmw_fastrtps_shared_cpp/custom_participant_info.hpp"
 #include "rmw_fastrtps_shared_cpp/custom_subscriber_info.hpp"
@@ -70,6 +73,15 @@ rmw_create_subscription(
     node->implementation_identifier,
     eprosima_fastrtps_identifier,
     return nullptr);
+  RMW_CHECK_ARGUMENT_FOR_NULL(qos_policies, nullptr);
+
+  // Adapt any 'best available' QoS options
+  rmw_qos_profile_t adapted_qos_policies = *qos_policies;
+  rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_topic_subscription(
+    node, topic_name, &adapted_qos_policies, rmw_get_publishers_info_by_topic);
+  if (RMW_RET_OK != ret) {
+    return nullptr;
+  }
 
   auto participant_info =
     static_cast<CustomParticipantInfo *>(node->context->impl->participant_info);
@@ -78,16 +90,15 @@ rmw_create_subscription(
     participant_info,
     type_supports,
     topic_name,
-    qos_policies,
+    &adapted_qos_policies,
     subscription_options,
-    false,
-    true);
+    false);
   if (!subscription) {
     return nullptr;
   }
 
   auto common_context = static_cast<rmw_dds_common::Context *>(node->context->impl->common);
-  auto info = static_cast<const CustomSubscriberInfo *>(subscription->data);
+  auto info = static_cast<CustomSubscriberInfo *>(subscription->data);
   {
     // Update graph
     std::lock_guard<std::mutex> guard(common_context->node_update_mutex);
@@ -115,6 +126,9 @@ rmw_create_subscription(
       return nullptr;
     }
   }
+  info->node_ = node;
+  info->common_context_ = common_context;
+
   return subscription;
 }
 
@@ -151,6 +165,32 @@ rmw_subscription_get_actual_qos(
   return rmw_fastrtps_shared_cpp::__rmw_subscription_get_actual_qos(subscription, qos);
 }
 
+rmw_ret_t
+rmw_subscription_set_content_filter(
+  rmw_subscription_t * subscription,
+  const rmw_subscription_content_filter_options_t * options)
+{
+  // Unused in current implementation.
+  (void) subscription;
+  (void) options;
+  RMW_SET_ERROR_MSG("unimplemented");
+  return RMW_RET_UNSUPPORTED;
+}
+
+rmw_ret_t
+rmw_subscription_get_content_filter(
+  const rmw_subscription_t * subscription,
+  rcutils_allocator_t * allocator,
+  rmw_subscription_content_filter_options_t * options)
+{
+  // Unused in current implementation.
+  (void) subscription;
+  (void) allocator;
+  (void) options;
+  RMW_SET_ERROR_MSG("unimplemented");
+  return RMW_RET_UNSUPPORTED;
+}
+
 using BaseTypeSupport = rmw_fastrtps_dynamic_cpp::BaseTypeSupport;
 
 rmw_ret_t
@@ -179,5 +219,19 @@ rmw_destroy_subscription(rmw_node_t * node, rmw_subscription_t * subscription)
 
   return rmw_fastrtps_shared_cpp::__rmw_destroy_subscription(
     eprosima_fastrtps_identifier, node, subscription);
+}
+
+rmw_ret_t
+rmw_subscription_set_on_new_message_callback(
+  rmw_subscription_t * rmw_subscription,
+  rmw_event_callback_t callback,
+  const void * user_data)
+{
+  RMW_CHECK_ARGUMENT_FOR_NULL(rmw_subscription, RMW_RET_INVALID_ARGUMENT);
+
+  return rmw_fastrtps_shared_cpp::__rmw_subscription_set_on_new_message_callback(
+    rmw_subscription,
+    callback,
+    user_data);
 }
 }  // extern "C"

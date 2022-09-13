@@ -2,85 +2,226 @@
 Changelog for package rmw_fastrtps_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1.3.1 (2022-07-25)
+6.4.0 (2022-09-13)
 ------------------
-* Handle exception on deserializing ROS message (`#603 <https://github.com/ros2/rmw_fastrtps/issues/603>`_)
-* Contributors: Erki Suurjaak, Miguel Company
+* Use Fast-DDS Waitsets instead of listeners (`#619 <https://github.com/ros2/rmw_fastrtps/issues/619>`_)
+* Take all available samples on service/client on_data_available. (`#616 <https://github.com/ros2/rmw_fastrtps/issues/616>`_)
+* Revert "add line feed for RCUTILS_SAFE_FWRITE_TO_STDERR (`#608 <https://github.com/ros2/rmw_fastrtps/issues/608>`_)" (`#612 <https://github.com/ros2/rmw_fastrtps/issues/612>`_)
+* add line feed for RCUTILS_SAFE_FWRITE_TO_STDERR (`#608 <https://github.com/ros2/rmw_fastrtps/issues/608>`_)
+* Contributors: Miguel Company, Ricardo González, Tomoya Fujita
 
-1.3.0 (2022-02-03)
+6.3.0 (2022-05-03)
 ------------------
 
-1.2.6 (2021-08-31)
+6.2.1 (2022-03-28)
 ------------------
-* Remove unnecessary includes (`#524 <https://github.com/ros2/rmw_fastrtps/issues/524>`_)
-* Contributors: Miguel Company
+* Address linter waning for windows. (`#592 <https://github.com/ros2/rmw_fastrtps/issues/592>`_)
+* Add pub/sub init, publish and take instrumentation using tracetools (`#591 <https://github.com/ros2/rmw_fastrtps/issues/591>`_)
+* Add content filter topic feature (`#513 <https://github.com/ros2/rmw_fastrtps/issues/513>`_)
+* Add sequence numbers to message info structure (`#587 <https://github.com/ros2/rmw_fastrtps/issues/587>`_)
+* Contributors: Chen Lihui, Christophe Bedard, Ivan Santiago Paunovic, Tomoya Fujita
 
-1.2.5 (2021-04-14)
+6.2.0 (2022-03-01)
 ------------------
-* Update quality declaration links (re: `ros2/docs.ros2.org#52 <https://github.com/ros2/docs.ros2.org/issues/52>`_) (`#521 <https://github.com/eProsima/rmw_fastrtps/issues/521>`_)
-* Use interface whitelist for localhost only (`#476 <https://github.com/eProsima/rmw_fastrtps/issues/476>`_)
-* Avoid unused identifier variable warnings (`#422 <https://github.com/eProsima/rmw_fastrtps/issues/422>`_) (`#494 <https://github.com/eProsima/rmw_fastrtps/issues/494>`_)
-* Contributors: Jacob Perron, Michel Hidalgo, Miguel Company, Simon Honigmann, Tomoya Fujita
+* Add EventsExecutor (`#468 <https://github.com/ros2/rmw_fastrtps/issues/468>`_)
+* Complete events support (`#583 <https://github.com/ros2/rmw_fastrtps/issues/583>`_)
+* Install headers to include/${PROJECT_NAME} (`#578 <https://github.com/ros2/rmw_fastrtps/issues/578>`_)
+* Change default to synchronous (`#571 <https://github.com/ros2/rmw_fastrtps/issues/571>`_)
+* Contributors: Audrow Nash, Miguel Company, Shane Loretz, iRobot ROS
 
-1.2.4 (2020-12-09)
+6.1.2 (2022-01-14)
 ------------------
-* Make sure to lock the mutex protecting client_endpoints\_ (`#492 <https://github.com/ros2/rmw_fastrtps/issues/492>`_) (`#493 <https://github.com/ros2/rmw_fastrtps/issues/493>`_)
-* Discriminate when the Client has gone from when the Client has not completely matched (`#479 <https://github.com/ros2/rmw_fastrtps/issues/479>`_)
-* Contributors: Chris Lalancette, Jacob Perron
+* Fix cpplint error (`#574 <https://github.com/ros2/rmw_fastrtps/issues/574>`_)
+* Contributors: Jacob Perron
 
-1.2.3 (2020-11-10)
+6.1.1 (2021-12-17)
 ------------------
-* Remove unused headers MessageTypeSupport.hpp and ServiceTypeSupport.hpp (`#481 <https://github.com/ros2/rmw_fastrtps/issues/481>`_) (`#482 <https://github.com/ros2/rmw_fastrtps/issues/482>`_)
-* Update maintainer list for Foxy (`#474 <https://github.com/ros2/rmw_fastrtps/issues/474>`_)
-* Updated QD
-* Provide external dependencies QD links
-* Update Quality Declarations to QL3 (`#404 <https://github.com/ros2/rmw_fastrtps/issues/404>`_)
-* Contributors: Alejandro Hernández Cordero, JLBuenoLopez-eProsima, Jacob Perron, Michael Jeronimo, Michel Hidalgo
+* Fixes for uncrustify 0.72 (`#572 <https://github.com/ros2/rmw_fastrtps/issues/572>`_)
+* Contributors: Chris Lalancette
 
-1.2.2 (2020-10-15)
+6.1.0 (2021-11-19)
 ------------------
-* Set context actual domain id (`#410 <https://github.com/ros2/rmw_fastrtps/issues/410>`_)
-* Improve __rmw_create_wait_set() implementation. (`#427 <https://github.com/ros2/rmw_fastrtps/issues/427>`_)
-  Handle errors consistently.
-* Add tests for RMW QoS to DDS attribute conversion. (`#449 <https://github.com/ros2/rmw_fastrtps/issues/449>`_)
+* Add client/service QoS getters. (`#560 <https://github.com/ros2/rmw_fastrtps/issues/560>`_)
+* Fix QoS depth settings for clients/service being ignored. (`#564 <https://github.com/ros2/rmw_fastrtps/issues/564>`_)
+* Contributors: Chen Lihui, mauropasse
+
+6.0.0 (2021-09-15)
+------------------
+* Update rmw_context_impl_t definition. (`#558 <https://github.com/ros2/rmw_fastrtps/issues/558>`_)
+* Update the LoanManager to do internal locking. (`#552 <https://github.com/ros2/rmw_fastrtps/issues/552>`_)
+* Contributors: Chris Lalancette, Michel Hidalgo
+
+5.2.2 (2021-08-09)
+------------------
+* Pass the CRL down to Fast-DDS if available. (`#546 <https://github.com/ros2/rmw_fastrtps/issues/546>`_)
+* Contributors: Chris Lalancette
+
+5.2.1 (2021-06-30)
+------------------
+* Use the new rmw_dds_common::get_security_files (`#544 <https://github.com/ros2/rmw_fastrtps/issues/544>`_)
+* Support for SubscriptionOptions::ignore_local_publications (`#536 <https://github.com/ros2/rmw_fastrtps/issues/536>`_)
+* Change links from index.ros.org -> docs.ros.org (`#539 <https://github.com/ros2/rmw_fastrtps/issues/539>`_)
+* Contributors: Chris Lalancette, Jose Antonio Moral
+
+5.2.0 (2021-06-04)
+------------------
+* Add rmw_publisher_wait_for_all_acked support. (`#519 <https://github.com/ros2/rmw_fastrtps/issues/519>`_)
+* Contributors: Barry Xu
+
+5.1.0 (2021-05-12)
+------------------
+* Loan messages implementation (`#523 <https://github.com/ros2/rmw_fastrtps/issues/523>`_)
+  * Added is_plain\_ attribute to base TypeSupport.
+  * Added new methods to base TypeSupport.
+  * Implementation of rmw_borrow_loaned_message.
+  * Implementation of rmw_return_loaned_message_from_publisher.
+  * Enable loan messages on publishers of plain types.
+  * Implementation for taking loaned messages.
+  * Enable loan messages on subscriptions of plain types.
+* Export rmw_dds_common as an rmw_fastrtps_shared_cpp dependency (`#530 <https://github.com/ros2/rmw_fastrtps/issues/530>`_)
+* Update includes after rcutils/get_env.h deprecation (`#529 <https://github.com/ros2/rmw_fastrtps/issues/529>`_)
+* Contributors: Christophe Bedard, Michel Hidalgo, Miguel Company
+
+5.0.0 (2021-04-06)
+------------------
+* Refactor to use DDS standard API (`#518 <https://github.com/ros2/rmw_fastrtps/issues/518>`_)
+* Unique network flows (`#502 <https://github.com/ros2/rmw_fastrtps/issues/502>`_)
+* updating quality declaration links (re: `ros2/docs.ros2.org#52 <https://github.com/ros2/docs.ros2.org/issues/52>`_) (`#520 <https://github.com/ros2/rmw_fastrtps/issues/520>`_)
+* Contributors: Miguel Company, shonigmann
+
+4.5.0 (2021-03-18)
+------------------
+* Take and return new RMW_DURATION_INFINITE correctly (`#515 <https://github.com/ros2/rmw_fastrtps/issues/515>`_)
+* Contributors: Emerson Knapp
+
+4.4.0 (2021-03-01)
+------------------
+* Add RMW function to check QoS compatibility (`#511 <https://github.com/ros2/rmw_fastrtps/issues/511>`_)
+* Capture cdr exceptions (`#505 <https://github.com/ros2/rmw_fastrtps/issues/505>`_)
+* Contributors: Jacob Perron, Miguel Company
+
+4.3.0 (2021-01-25)
+------------------
+
+4.2.0 (2020-12-10)
+------------------
+* Make sure to lock the mutex protecting client_endpoints\_. (`#492 <https://github.com/ros2/rmw_fastrtps/issues/492>`_)
+* Contributors: Chris Lalancette
+
+4.1.0 (2020-12-08)
+------------------
+* Use interface whitelist for localhost only (`#476 <https://github.com/ros2/rmw_fastrtps/issues/476>`_)
+* Make use of error return value in decrement_context_impl_ref_count (`#488 <https://github.com/ros2/rmw_fastrtps/issues/488>`_)
+* Remove unnecessary includes (`#487 <https://github.com/ros2/rmw_fastrtps/issues/487>`_)
+* Use new time_utils function to limit rmw_time_t values to 32-bits (`#485 <https://github.com/ros2/rmw_fastrtps/issues/485>`_)
+* New environment variable to change easily the publication mode (`#470 <https://github.com/ros2/rmw_fastrtps/issues/470>`_)
+* Remove unused headers MessageTypeSupport.hpp and ServiceTypeSupport.hpp (`#481 <https://github.com/ros2/rmw_fastrtps/issues/481>`_)
+* Contributors: Jacob Perron, José Luis Bueno López, Michael Jeronimo, Miguel Company, Stephen Brawner
+
+4.0.0 (2020-10-22)
+------------------
+* Discriminate when the Client has gone from when the Client has not completely matched (`#467 <https://github.com/ros2/rmw_fastrtps/issues/467>`_)
+  * Workaround when the client is gone before server sends response
+  * Change add to the map to listener callback
+* Update the package.xml files with the latest Open Robotics maintainers (`#459 <https://github.com/ros2/rmw_fastrtps/issues/459>`_)
+* Update Quality Declarations and READMEs (`#455 <https://github.com/ros2/rmw_fastrtps/issues/455>`_)
+  * Add QD links for dependencies to rmw_fastrtps_shared_cpp QD.
+  * Provide external dependencies QD links.
+  * Update rmw_fastrtps_shared_cpp QD: Fast DDS
+  * Update README rmw_fastrtps_shared_cpp to QL2
+* Contributors: JLBuenoLopez-eProsima, Jaime Martin Losa, José Luis Bueno López, Michael Jeronimo
+
+3.1.4 (2020-10-02)
+------------------
+* Perform fault injection in all creation/destruction APIs. (`#453 <https://github.com/ros2/rmw_fastrtps/issues/453>`_)
+* Ensure rmw_destroy_node() completes despite run-time errors. (`#458 <https://github.com/ros2/rmw_fastrtps/issues/458>`_)
+* Handle too large QoS queue depths.  (`#457 <https://github.com/ros2/rmw_fastrtps/issues/457>`_)
+* Update rmw_fastrtps_cpp and rmw_fastrtps_shared_cpp QDs to QL2. (`#456 <https://github.com/ros2/rmw_fastrtps/issues/456>`_)
+* Contributors: Michel Hidalgo
+
+3.1.3 (2020-09-29)
+------------------
 * checked client implementation and return RMW_RET_INCORRECT_RMW_IMPLEMENTATION (`#451 <https://github.com/ros2/rmw_fastrtps/issues/451>`_)
 * Update service/client request/response API error returns (`#450 <https://github.com/ros2/rmw_fastrtps/issues/450>`_)
-* Updated rmw\_* return codes (`#443 <https://github.com/ros2/rmw_fastrtps/issues/443>`_)
-* Make service/client construction/destruction implementation compliant (`#445 <https://github.com/ros2/rmw_fastrtps/issues/445>`_)
+* Contributors: Alejandro Hernández Cordero, Jose Tomas Lorente
+
+3.1.2 (2020-09-25)
+------------------
+* Updated publisher/subscription allocation and wait set API return codes (`#443 <https://github.com/ros2/rmw_fastrtps/issues/443>`_)
 * Added rmw_logging tests (`#442 <https://github.com/ros2/rmw_fastrtps/issues/442>`_)
+* Contributors: Alejandro Hernández Cordero
+
+3.1.1 (2020-09-24)
+------------------
+* Add tests for RMW QoS to DDS attribute conversion. (`#449 <https://github.com/ros2/rmw_fastrtps/issues/449>`_)
+* Make service/client construction/destruction implementation compliant (`#445 <https://github.com/ros2/rmw_fastrtps/issues/445>`_)
+* Contributors: Michel Hidalgo
+
+3.1.0 (2020-09-23)
+------------------
+* Inject faults on __rmw_publish() and run_listener_thread() call. (`#441 <https://github.com/ros2/rmw_fastrtps/issues/441>`_)
 * Update gid API return codes. (`#440 <https://github.com/ros2/rmw_fastrtps/issues/440>`_)
 * Update graph API return codes. (`#436 <https://github.com/ros2/rmw_fastrtps/issues/436>`_)
-* Updated error returns on rmw_take_serialized and with_message_info  (`#435 <https://github.com/ros2/rmw_fastrtps/issues/435>`_)
-* Updated error returns on rmw_take (`#432 <https://github.com/ros2/rmw_fastrtps/issues/432>`_)
-* Update rmw_publish error returns (`#430 <https://github.com/ros2/rmw_fastrtps/issues/430>`_)
+* Contributors: Michel Hidalgo
+
+3.0.0 (2020-09-18)
+------------------
+* Update rmw_take_serialized() and rmw_take_with_message_info() error returns  (`#435 <https://github.com/ros2/rmw_fastrtps/issues/435>`_)
+* Update rmw_take() error returns (`#432 <https://github.com/ros2/rmw_fastrtps/issues/432>`_)
+* Update rmw_publish() error returns (`#430 <https://github.com/ros2/rmw_fastrtps/issues/430>`_)
 * Update rmw_publish_serialized_message() error returns (`#431 <https://github.com/ros2/rmw_fastrtps/issues/431>`_)
-* Ensure compliant publisher QoS queries. (`#425 <https://github.com/ros2/rmw_fastrtps/issues/425>`_)
-  Follow-up after 8fc9ca3d98a64118590a205b2162559e17309a27.
+* Contributors: Jose Tomas Lorente, Lobotuerk
+
+2.6.0 (2020-08-28)
+------------------
+* Improve __rmw_create_wait_set() implementation. (`#427 <https://github.com/ros2/rmw_fastrtps/issues/427>`_)
 * Ensure compliant matched pub/sub count API. (`#424 <https://github.com/ros2/rmw_fastrtps/issues/424>`_)
+* Ensure compliant publisher QoS queries. (`#425 <https://github.com/ros2/rmw_fastrtps/issues/425>`_)
+* Fix memory leak that wait_set might be not destoryed in some case. (`#423 <https://github.com/ros2/rmw_fastrtps/issues/423>`_)
+* Contributors: Chen Lihui, Michel Hidalgo
+
+2.5.0 (2020-08-07)
+------------------
+* Avoid unused identifier variable warnings. (`#422 <https://github.com/ros2/rmw_fastrtps/issues/422>`_)
+* Fix trying to get topic data that was already removed. (`#417 <https://github.com/ros2/rmw_fastrtps/issues/417>`_)
+* Contributors: Chen Lihui, Michel Hidalgo
+
+2.4.0 (2020-08-06)
+------------------
 * Ensure compliant subscription API. (`#419 <https://github.com/ros2/rmw_fastrtps/issues/419>`_)
+* Use package path to TypeSupport.hpp headers in ServiceTypeSupport and MessageTypeSupport (`#415 <https://github.com/ros2/rmw_fastrtps/issues/415>`_)
+  Use package in path to TypeSupport header for ServiceTypeSupport/MessageTypeSupport
+* Contributors: Jose Luis Rivero, Michel Hidalgo
+
+2.3.0 (2020-07-30)
+------------------
 * Ensure compliant publisher API. (`#414 <https://github.com/ros2/rmw_fastrtps/issues/414>`_)
+* Contributors: Michel Hidalgo
+
+2.2.0 (2020-07-22)
+------------------
+* Set context actual domain id (`#410 <https://github.com/ros2/rmw_fastrtps/issues/410>`_)
+* Contributors: Ivan Santiago Paunovic
+
+2.1.0 (2020-07-20)
+------------------
+* Add missing thread-safety annotation in ServicePubListener (`#409 <https://github.com/ros2/rmw_fastrtps/issues/409>`_)
+* Ensure compliant node construction/destruction API. (`#408 <https://github.com/ros2/rmw_fastrtps/issues/408>`_)
+* Contributors: Michel Hidalgo
+
+2.0.0 (2020-07-08)
+------------------
+* Update Quality Declarations to QL3. (`#404 <https://github.com/ros2/rmw_fastrtps/issues/404>`_)
+* Contributors: Michel Hidalgo
+
+1.1.0 (2020-06-29)
+------------------
+* Do not use string literals as implementation identifiers in tests. (`#402 <https://github.com/ros2/rmw_fastrtps/issues/402>`_)
 * Ensure compliant init options API implementations. (`#399 <https://github.com/ros2/rmw_fastrtps/issues/399>`_)
 * Finalize context iff shutdown. (`#396 <https://github.com/ros2/rmw_fastrtps/issues/396>`_)
-* Ensure compliant node construction/destruction API. (`#408 <https://github.com/ros2/rmw_fastrtps/issues/408>`_)
-* Contributors: Alejandro Hernández Cordero, Ivan Santiago Paunovic, Jose Tomas Lorente, Michel Hidalgo
-
-1.2.1 (2020-10-07)
-------------------
-* Fix memory leak that wait_set might be not destoryed in some case (`#423 <https://github.com/ros2/rmw_fastrtps/issues/423>`_) (`#426 <https://github.com/ros2/rmw_fastrtps/issues/426>`_)
-* Use package path to TypeSupport.hpp headers in ServiceTypeSupport and MessageTypeSupport (`#415 <https://github.com/ros2/rmw_fastrtps/issues/415>`_) (`#420 <https://github.com/ros2/rmw_fastrtps/issues/420>`_)
-* Fix trying to get topic data that was already removed (`#421 <https://github.com/ros2/rmw_fastrtps/issues/421>`_)
-* Contributors: Chen Lihui, Dirk Thomas, Jose Luis Rivero
-
-1.2.0 (2020-07-21)
-------------------
-* Add missing thread-safety annotation in ServicePubListener (`#409 <https://github.com/ros2/rmw_fastrtps/issues/409>`_) (`#413 <https://github.com/ros2/rmw_fastrtps/issues/413>`_)
-* Make service wait for response reader (`#390 <https://github.com/ros2/rmw_fastrtps/issues/390>`_) (`#412 <https://github.com/ros2/rmw_fastrtps/issues/412>`_)
+* Handle RMW_DEFAULT_DOMAIN_ID. (`#394 <https://github.com/ros2/rmw_fastrtps/issues/394>`_)
+* Make service wait for response reader (`#390 <https://github.com/ros2/rmw_fastrtps/issues/390>`_)
 * Contributors: Michel Hidalgo, Miguel Company
-
-1.0.2 (2020-07-07)
-------------------
-* Handle RMW_DEFAULT_DOMAIN_ID (`#394 <https://github.com/ros2/rmw_fastrtps/issues/394>`_) (`#398 <https://github.com/ros2/rmw_fastrtps/issues/398>`_)
-* Contributors: Michel Hidalgo
 
 1.0.1 (2020-06-01)
 ------------------

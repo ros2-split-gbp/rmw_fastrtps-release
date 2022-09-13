@@ -38,8 +38,8 @@ find_package(rmw_fastrtps_shared_cpp REQUIRED)
 
 find_package(fastrtps_cmake_module REQUIRED)
 find_package(fastcdr REQUIRED CONFIG)
-find_package(fastrtps REQUIRED CONFIG)
-find_package(FastRTPS REQUIRED MODULE)
+find_package(fastrtps 2.3 REQUIRED CONFIG)
+find_package(FastRTPS 2.3 REQUIRED MODULE)
 
 find_package(rmw REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
@@ -64,6 +64,7 @@ add_library(rmw_fastrtps_dynamic_cpp
   src/rmw_compare_gids_equal.cpp
   src/rmw_count.cpp
   src/rmw_event.cpp
+  src/rmw_features.cpp
   src/rmw_get_gid_for_publisher.cpp
   src/rmw_get_implementation_identifier.cpp
   src/rmw_get_serialization_format.cpp
@@ -76,6 +77,7 @@ add_library(rmw_fastrtps_dynamic_cpp
   src/rmw_node_names.cpp
   src/rmw_publish.cpp
   src/rmw_publisher.cpp
+  src/rmw_qos.cpp
   src/rmw_request.cpp
   src/rmw_response.cpp
   src/rmw_serialize.cpp
@@ -93,6 +95,7 @@ add_library(rmw_fastrtps_dynamic_cpp
   src/type_support_common.cpp
   src/type_support_proxy.cpp
   src/type_support_registry.cpp
+  src/rmw_get_endpoint_network_flow.cpp
 )
 target_link_libraries(rmw_fastrtps_dynamic_cpp
   fastcdr fastrtps)
@@ -122,10 +125,11 @@ configure_rmw_library(rmw_fastrtps_dynamic_cpp)
 target_compile_definitions(${PROJECT_NAME}
 PRIVATE "RMW_FASTRTPS_DYNAMIC_CPP_BUILDING_LIBRARY")
 
-# specific order: dependents before dependencies
-ament_export_include_directories(include)
+# Export old-style CMake variables
+ament_export_include_directories("include/${PROJECT_NAME}")
 ament_export_libraries(rmw_fastrtps_dynamic_cpp)
 
+# specific order: dependents before dependencies
 ament_export_dependencies(rcpputils)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw)
@@ -167,7 +171,7 @@ ament_package(
 
 install(
   DIRECTORY include/
-  DESTINATION include
+  DESTINATION include/${PROJECT_NAME}
 )
 
 install(

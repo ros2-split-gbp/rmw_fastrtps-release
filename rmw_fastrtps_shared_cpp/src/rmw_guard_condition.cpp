@@ -17,28 +17,33 @@
 
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 
-#include "types/guard_condition.hpp"
+#include "fastdds/dds/core/condition/GuardCondition.hpp"
 
 namespace rmw_fastrtps_shared_cpp
 {
 rmw_guard_condition_t *
 __rmw_create_guard_condition(const char * identifier)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(nullptr);
+
   rmw_guard_condition_t * guard_condition_handle = new rmw_guard_condition_t;
   guard_condition_handle->implementation_identifier = identifier;
-  guard_condition_handle->data = new GuardCondition();
+  guard_condition_handle->data = new eprosima::fastdds::dds::GuardCondition();
   return guard_condition_handle;
 }
 
 rmw_ret_t
 __rmw_destroy_guard_condition(rmw_guard_condition_t * guard_condition)
 {
+  rmw_ret_t ret = RMW_RET_ERROR;
+
   if (guard_condition) {
-    delete static_cast<GuardCondition *>(guard_condition->data);
+    delete static_cast<eprosima::fastdds::dds::GuardCondition *>(guard_condition->data);
     delete guard_condition;
-    return RMW_RET_OK;
+    ret = RMW_RET_OK;
   }
 
-  return RMW_RET_ERROR;
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RMW_RET_ERROR);  // on completion
+  return ret;
 }
 }  // namespace rmw_fastrtps_shared_cpp

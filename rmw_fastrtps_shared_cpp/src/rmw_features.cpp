@@ -1,4 +1,4 @@
-// Copyright 2016-2018 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+// Copyright 2022 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,16 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TYPES__CUSTOM_WAIT_SET_INFO_HPP_
-#define TYPES__CUSTOM_WAIT_SET_INFO_HPP_
+#include "rmw/features.h"
 
-#include <condition_variable>
-#include <mutex>
+#include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 
-typedef struct CustomWaitsetInfo
+bool
+rmw_fastrtps_shared_cpp::__rmw_feature_supported(rmw_feature_t feature)
 {
-  std::condition_variable condition;
-  std::mutex condition_mutex;
-} CustomWaitsetInfo;
-
-#endif  // TYPES__CUSTOM_WAIT_SET_INFO_HPP_
+  if (feature == RMW_FEATURE_MESSAGE_INFO_PUBLICATION_SEQUENCE_NUMBER) {
+    return true;
+  }
+  return false;
+}

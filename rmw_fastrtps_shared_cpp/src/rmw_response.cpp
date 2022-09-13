@@ -16,7 +16,8 @@
 
 #include "fastcdr/Cdr.h"
 
-#include "fastrtps/subscriber/Subscriber.h"
+#include "fastdds/rtps/common/WriteParams.h"
+#include "fastdds/dds/core/StackAllocatedSequence.hpp"
 
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
@@ -54,21 +55,42 @@ __rmw_take_response(
 
   CustomClientResponse response;
 
-  if (info->listener_->getResponse(response)) {
-    eprosima::fastcdr::Cdr deser(
-      *response.buffer_,
-      eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-      eprosima::fastcdr::Cdr::DDS_CDR);
-    if (info->response_type_support_->deserializeROSmessage(
-        deser, ros_response, info->response_type_support_impl_))
-    {
-      request_header->source_timestamp = response.sample_info_.sourceTimestamp.to_ns();
-      request_header->received_timestamp = response.sample_info_.receptionTimestamp.to_ns();
-      request_header->request_id.sequence_number =
-        ((int64_t)response.sample_identity_.sequence_number().high) <<
-        32 | response.sample_identity_.sequence_number().low;
+  // Todo(sloretz) eliminate heap allocation pending eprosima/Fast-CDR#19
+  response.buffer_.reset(new eprosima::fastcdr::FastBuffer());
+  rmw_fastrtps_shared_cpp::SerializedData data;
+  data.is_cdr_buffer = true;
+  data.data = response.buffer_.get();
+  data.impl = nullptr;      // not used when is_cdr_buffer is true
 
-      *taken = true;
+  eprosima::fastdds::dds::StackAllocatedSequence<void *, 1> data_values;
+  const_cast<void **>(data_values.buffer())[0] = &data;
+  eprosima::fastdds::dds::SampleInfoSeq info_seq{1};
+
+  if (ReturnCode_t::RETCODE_OK == info->response_reader_->take(data_values, info_seq, 1)) {
+    if (info_seq[0].valid_data) {
+      response.sample_identity_ = info_seq[0].related_sample_identity;
+
+      if (response.sample_identity_.writer_guid() == info->reader_guid_ ||
+        response.sample_identity_.writer_guid() == info->writer_guid_)
+      {
+        auto raw_type_support = dynamic_cast<rmw_fastrtps_shared_cpp::TypeSupport *>(
+          info->response_type_support_.get());
+        eprosima::fastcdr::Cdr deser(
+          *response.buffer_,
+          eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
+          eprosima::fastcdr::Cdr::DDS_CDR);
+        if (raw_type_support->deserializeROSmessage(
+            deser, ros_response, info->response_type_support_impl_))
+        {
+          request_header->source_timestamp = info_seq[0].source_timestamp.to_ns();
+          request_header->received_timestamp = info_seq[0].reception_timestamp.to_ns();
+          request_header->request_id.sequence_number =
+            ((int64_t)response.sample_identity_.sequence_number().high) <<
+            32 | response.sample_identity_.sequence_number().low;
+
+          *taken = true;
+        }
+      }
     }
   }
 
@@ -119,7 +141,7 @@ __rmw_send_response(
   if ((related_guid.entityId.value[3] & entity_id_is_reader_bit) != 0) {
     // Related guid is a reader, so it is the response subscription guid.
     // Wait for the response writer to be matched with it.
-    auto listener = static_cast<PatchedServicePubListener *>(info->pub_listener_);
+    auto listener = info->pub_listener_;
     client_present_t ret = listener->check_for_subscription(related_guid);
     if (ret == client_present_t::GONE) {
       return RMW_RET_OK;
@@ -133,7 +155,7 @@ __rmw_send_response(
   data.is_cdr_buffer = false;
   data.data = const_cast<void *>(ros_response);
   data.impl = info->response_type_support_impl_;
-  if (info->response_publisher_->write(&data, wparams)) {
+  if (info->response_writer_->write(&data, wparams)) {
     returnedValue = RMW_RET_OK;
   } else {
     RMW_SET_ERROR_MSG("cannot publish data");
@@ -141,4 +163,5 @@ __rmw_send_response(
 
   return returnedValue;
 }
+
 }  // namespace rmw_fastrtps_shared_cpp
