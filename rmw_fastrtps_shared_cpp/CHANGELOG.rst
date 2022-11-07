@@ -2,23 +2,10 @@
 Changelog for package rmw_fastrtps_shared_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-6.5.0 (2022-11-02)
+6.2.2 (2022-11-07)
 ------------------
-* Remove duplicated code (`#637 <https://github.com/ros2/rmw_fastrtps/issues/637>`_)
-* Call callbacks only if unread count > 0 (`#634 <https://github.com/ros2/rmw_fastrtps/issues/634>`_)
-* Add rmw_get_gid_for_client impl (`#631 <https://github.com/ros2/rmw_fastrtps/issues/631>`_)
-* Contributors: Barry Xu, Brian, mauropasse
-
-6.4.0 (2022-09-13)
-------------------
-* Use Fast-DDS Waitsets instead of listeners (`#619 <https://github.com/ros2/rmw_fastrtps/issues/619>`_)
-* Take all available samples on service/client on_data_available. (`#616 <https://github.com/ros2/rmw_fastrtps/issues/616>`_)
-* Revert "add line feed for RCUTILS_SAFE_FWRITE_TO_STDERR (`#608 <https://github.com/ros2/rmw_fastrtps/issues/608>`_)" (`#612 <https://github.com/ros2/rmw_fastrtps/issues/612>`_)
-* add line feed for RCUTILS_SAFE_FWRITE_TO_STDERR (`#608 <https://github.com/ros2/rmw_fastrtps/issues/608>`_)
-* Contributors: Miguel Company, Ricardo González, Tomoya Fujita
-
-6.3.0 (2022-05-03)
-------------------
+* Use Fast-DDS Waitsets instead of listeners (backport `#619 <https://github.com/ros2/rmw_fastrtps/issues/619>`_) (`#633 <https://github.com/ros2/rmw_fastrtps/issues/633>`_)
+* Contributors: Miguel Company
 
 6.2.1 (2022-03-28)
 ------------------

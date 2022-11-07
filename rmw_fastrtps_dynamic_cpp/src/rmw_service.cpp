@@ -44,8 +44,6 @@
 #include "rmw/rmw.h"
 #include "rmw/validate_full_topic_name.h"
 
-#include "rmw_dds_common/qos.hpp"
-
 #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
 
 #include "rosidl_typesupport_introspection_cpp/identifier.hpp"
@@ -101,12 +99,9 @@ rmw_create_service(
     }
   }
 
-  rmw_qos_profile_t adapted_qos_policies =
-    rmw_dds_common::qos_profile_update_best_available_for_services(*qos_policies);
-
   /////
   // Check RMW QoS
-  if (!is_valid_qos(adapted_qos_policies)) {
+  if (!is_valid_qos(*qos_policies)) {
     RMW_SET_ERROR_MSG("create_service() called with invalid QoS");
     return nullptr;
   }
@@ -160,9 +155,9 @@ rmw_create_service(
     untyped_response_members, type_support->typesupport_identifier);
 
   std::string response_topic_name = _create_topic_name(
-    &adapted_qos_policies, ros_service_response_prefix, service_name, "Reply").to_string();
+    qos_policies, ros_service_response_prefix, service_name, "Reply").to_string();
   std::string request_topic_name = _create_topic_name(
-    &adapted_qos_policies, ros_service_requester_prefix, service_name, "Request").to_string();
+    qos_policies, ros_service_requester_prefix, service_name, "Request").to_string();
 
   // Get request topic and type
   eprosima::fastdds::dds::TypeSupport request_fastdds_type;
@@ -296,7 +291,7 @@ rmw_create_service(
   // Create and register Topics
   // Same default topic QoS for both topics
   eprosima::fastdds::dds::TopicQos topic_qos = dds_participant->get_default_topic_qos();
-  if (!get_topic_qos(adapted_qos_policies, topic_qos)) {
+  if (!get_topic_qos(*qos_policies, topic_qos)) {
     RMW_SET_ERROR_MSG("create_service() failed setting topic QoS");
     return nullptr;
   }
@@ -350,7 +345,7 @@ rmw_create_service(
     reader_qos.data_sharing().off();
   }
 
-  if (!get_datareader_qos(adapted_qos_policies, reader_qos)) {
+  if (!get_datareader_qos(*qos_policies, reader_qos)) {
     RMW_SET_ERROR_MSG("create_service() failed setting request DataReader QoS");
     return nullptr;
   }
@@ -408,7 +403,7 @@ rmw_create_service(
     writer_qos.data_sharing().off();
   }
 
-  if (!get_datawriter_qos(adapted_qos_policies, writer_qos)) {
+  if (!get_datawriter_qos(*qos_policies, writer_qos)) {
     RMW_SET_ERROR_MSG("create_service() failed setting response DataWriter QoS");
     return nullptr;
   }

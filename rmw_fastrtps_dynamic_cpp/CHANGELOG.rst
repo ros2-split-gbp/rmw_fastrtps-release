@@ -2,25 +2,11 @@
 Changelog for package rmw_fastrtps_dynamic_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-6.5.0 (2022-11-02)
+6.2.2 (2022-11-07)
 ------------------
-* Add rmw_get_gid_for_client impl (`#631 <https://github.com/ros2/rmw_fastrtps/issues/631>`_)
-* Contributors: Brian
-
-6.4.0 (2022-09-13)
-------------------
-* Use Fast-DDS Waitsets instead of listeners (`#619 <https://github.com/ros2/rmw_fastrtps/issues/619>`_)
-* Revert "add line feed for RCUTILS_SAFE_FWRITE_TO_STDERR (`#608 <https://github.com/ros2/rmw_fastrtps/issues/608>`_)" (`#612 <https://github.com/ros2/rmw_fastrtps/issues/612>`_)
-* add line feed for RCUTILS_SAFE_FWRITE_TO_STDERR (`#608 <https://github.com/ros2/rmw_fastrtps/issues/608>`_)
-* Allow null arguments in the EventsExecutor parameters (`#602 <https://github.com/ros2/rmw_fastrtps/issues/602>`_)
-* Add EventExecutor to rmw_fastrtps_dynamic_cpp
-* Fix cpplint error (`#601 <https://github.com/ros2/rmw_fastrtps/issues/601>`_)
-* Contributors: Jose Luis Rivero, Ricardo González, Tomoya Fujita
-
-6.3.0 (2022-05-03)
-------------------
-* Handle 'best_available' QoS policies (`#598 <https://github.com/ros2/rmw_fastrtps/issues/598>`_)
-* Contributors: Jacob Perron
+* Use Fast-DDS Waitsets instead of listeners (backport `#619 <https://github.com/ros2/rmw_fastrtps/issues/619>`_) (`#633 <https://github.com/ros2/rmw_fastrtps/issues/633>`_)
+* Allow null arguments in the EventsExecutor parameters (`#605 <https://github.com/ros2/rmw_fastrtps/issues/605>`_)
+* Contributors: Jose Luis Rivero, Miguel Company
 
 6.2.1 (2022-03-28)
 ------------------
