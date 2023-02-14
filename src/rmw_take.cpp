@@ -42,8 +42,6 @@
 namespace rmw_fastrtps_shared_cpp
 {
 
-using DataSharingKind = eprosima::fastdds::dds::DataSharingKind;
-
 void
 _assign_message_info(
   const char * identifier,
@@ -81,7 +79,7 @@ _take(
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     subscription handle,
     subscription->implementation_identifier, identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION)
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   auto info = static_cast<CustomSubscriberInfo *>(subscription->data);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "custom subscriber info is null", return RMW_RET_ERROR);
@@ -303,7 +301,7 @@ _take_serialized_message(
   RMW_CHECK_TYPE_IDENTIFIERS_MATCH(
     subscription handle,
     subscription->implementation_identifier, identifier,
-    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION)
+    return RMW_RET_INCORRECT_RMW_IMPLEMENTATION);
 
   auto info = static_cast<CustomSubscriberInfo *>(subscription->data);
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(info, "custom subscriber info is null", return RMW_RET_ERROR);
@@ -460,8 +458,7 @@ __init_subscription_for_loans(
 {
   auto info = static_cast<CustomSubscriberInfo *>(subscription->data);
   const auto & qos = info->data_reader_->get_qos();
-  bool has_data_sharing = DataSharingKind::OFF != qos.data_sharing().kind();
-  subscription->can_loan_messages = has_data_sharing && info->type_support_->is_plain();
+  subscription->can_loan_messages = info->type_support_->is_plain();
   if (subscription->can_loan_messages) {
     const auto & allocation_qos = qos.reader_resource_limits().outstanding_reads_allocation;
     info->loan_manager_ = std::make_shared<LoanManager>(allocation_qos);

@@ -55,8 +55,11 @@ typedef struct CustomClientInfo
   eprosima::fastdds::dds::DataReader * response_reader_{nullptr};
   eprosima::fastdds::dds::DataWriter * request_writer_{nullptr};
 
-  std::string request_topic_;
-  std::string response_topic_;
+  std::string request_topic_name_;
+  std::string response_topic_name_;
+
+  eprosima::fastdds::dds::Topic * request_topic_{nullptr};
+  eprosima::fastdds::dds::Topic * response_topic_{nullptr};
 
   ClientListener * listener_{nullptr};
   eprosima::fastrtps::rtps::GUID_t writer_guid_;
@@ -127,10 +130,10 @@ public:
     const void * user_data,
     rmw_event_callback_t callback)
   {
-    std::unique_lock<std::mutex> lock_mutex(on_new_response_m_);
-
     if (callback) {
       auto unread_responses = get_unread_responses();
+
+      std::lock_guard<std::mutex> lock_mutex(on_new_response_m_);
 
       if (0 < unread_responses) {
         callback(user_data, unread_responses);
@@ -143,6 +146,8 @@ public:
       status_mask |= eprosima::fastdds::dds::StatusMask::data_available();
       info_->response_reader_->set_listener(this, status_mask);
     } else {
+      std::lock_guard<std::mutex> lock_mutex(on_new_response_m_);
+
       eprosima::fastdds::dds::StatusMask status_mask = info_->response_reader_->get_status_mask();
       status_mask &= ~eprosima::fastdds::dds::StatusMask::data_available();
       info_->response_reader_->set_listener(this, status_mask);
