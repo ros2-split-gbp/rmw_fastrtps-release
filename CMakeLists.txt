@@ -16,9 +16,10 @@ cmake_minimum_required(VERSION 3.5)
 
 project(rmw_fastrtps_dynamic_cpp)
 
-# Default to C++14
+# Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -38,8 +39,8 @@ find_package(rmw_fastrtps_shared_cpp REQUIRED)
 
 find_package(fastrtps_cmake_module REQUIRED)
 find_package(fastcdr REQUIRED CONFIG)
-find_package(fastrtps 2.3 REQUIRED CONFIG)
-find_package(FastRTPS 2.3 REQUIRED MODULE)
+find_package(fastrtps 2.10 REQUIRED CONFIG)
+find_package(FastRTPS 2.10 REQUIRED MODULE)
 
 find_package(rmw REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
@@ -63,6 +64,7 @@ add_library(rmw_fastrtps_dynamic_cpp
   src/rmw_client.cpp
   src/rmw_compare_gids_equal.cpp
   src/rmw_count.cpp
+  src/rmw_dynamic_message_type_support.cpp
   src/rmw_event.cpp
   src/rmw_features.cpp
   src/rmw_get_gid_for_client.cpp
