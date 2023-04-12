@@ -69,6 +69,7 @@ find_and_check_topic_and_type(
     }
   }
 
+  // NOTE(methylDragon): This only finds a type that's been previously registered to the participant
   *returned_type = participant_info->participant_->find_type(type_name);
   return true;
 }
@@ -76,6 +77,7 @@ find_and_check_topic_and_type(
 void
 remove_topic_and_type(
   CustomParticipantInfo * participant_info,
+  EventListenerInterface * event_listener,
   const eprosima::fastdds::dds::TopicDescription * topic_desc,
   const eprosima::fastdds::dds::TypeSupport & type)
 {
@@ -85,7 +87,7 @@ remove_topic_and_type(
   auto topic = dynamic_cast<const eprosima::fastdds::dds::Topic *>(topic_desc);
 
   if (nullptr != topic) {
-    participant_info->delete_topic(topic);
+    participant_info->delete_topic(topic, event_listener);
   }
 
   if (type) {
@@ -128,7 +130,7 @@ create_datareader(
   const rmw_subscription_options_t * subscription_options,
   eprosima::fastdds::dds::Subscriber * subscriber,
   eprosima::fastdds::dds::TopicDescription * des_topic,
-  SubListener * listener,
+  CustomDataReaderListener * listener,
   eprosima::fastdds::dds::DataReader ** data_reader
 )
 {
