@@ -63,7 +63,7 @@ init_context_impl(
       eprosima_fastrtps_identifier,
       context->actual_domain_id,
       &context->options.security_options,
-      (context->options.localhost_only == RMW_LOCALHOST_ONLY_ENABLED) ? 1 : 0,
+      &context->options.discovery_options,
       context->options.enclave,
       common_context.get()),
     [&](CustomParticipantInfo * participant_info)
@@ -93,9 +93,7 @@ init_context_impl(
       rosidl_typesupport_cpp::get_message_type_support_handle<ParticipantEntitiesInfo>(),
       "ros_discovery_info",
       &qos,
-      &publisher_options,
-      false,       // our fastrtps typesupport doesn't support keyed topics
-      true),
+      &publisher_options),
     [&](rmw_publisher_t * pub)
     {
       if (RMW_RET_OK != rmw_fastrtps_shared_cpp::destroy_publisher(
