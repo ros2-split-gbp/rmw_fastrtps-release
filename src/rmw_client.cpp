@@ -194,12 +194,12 @@ rmw_create_client(
 
   auto cleanup_info = rcpputils::make_scope_exit(
     [info, participant_info]() {
+      rmw_fastrtps_shared_cpp::remove_topic_and_type(
+        participant_info, nullptr, info->response_topic_, info->response_type_support_);
+      rmw_fastrtps_shared_cpp::remove_topic_and_type(
+        participant_info, nullptr, info->request_topic_, info->request_type_support_);
       delete info->pub_listener_;
       delete info->listener_;
-      rmw_fastrtps_shared_cpp::remove_topic_and_type(
-        participant_info, info->response_topic_, info->response_type_support_);
-      rmw_fastrtps_shared_cpp::remove_topic_and_type(
-        participant_info, info->request_topic_, info->request_type_support_);
       delete info;
     });
 
@@ -268,7 +268,7 @@ rmw_create_client(
 
   // Create response topic
   info->response_topic_ = participant_info->find_or_create_topic(
-    response_topic_name, response_type_name, topic_qos);
+    response_topic_name, response_type_name, topic_qos, nullptr);
   if (!info->response_topic_) {
     RMW_SET_ERROR_MSG("create_client() failed to create response topic");
     return nullptr;
@@ -278,7 +278,7 @@ rmw_create_client(
 
   // Create request topic
   info->request_topic_ = participant_info->find_or_create_topic(
-    request_topic_name, request_type_name, topic_qos);
+    request_topic_name, request_type_name, topic_qos, nullptr);
   if (!info->request_topic_) {
     RMW_SET_ERROR_MSG("create_client() failed to create request topic");
     return nullptr;
@@ -314,7 +314,11 @@ rmw_create_client(
     reader_qos.data_sharing().off();
   }
 
-  if (!get_datareader_qos(adapted_qos_policies, reader_qos)) {
+  if (!get_datareader_qos(
+      adapted_qos_policies,
+      *type_supports->response_typesupport->get_type_hash_func(type_supports->response_typesupport),
+      reader_qos))
+  {
     RMW_SET_ERROR_MSG("create_client() failed setting response DataReader QoS");
     return nullptr;
   }
@@ -368,7 +372,11 @@ rmw_create_client(
     writer_qos.data_sharing().off();
   }
 
-  if (!get_datawriter_qos(adapted_qos_policies, writer_qos)) {
+  if (!get_datawriter_qos(
+      adapted_qos_policies,
+      *type_supports->request_typesupport->get_type_hash_func(type_supports->request_typesupport),
+      writer_qos))
+  {
     RMW_SET_ERROR_MSG("create_client() failed setting request DataWriter QoS");
     return nullptr;
   }
