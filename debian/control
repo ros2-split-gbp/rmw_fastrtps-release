@@ -1,0 +1,12 @@
+Source: ros-iron-rmw-fastrtps-dynamic-cpp
+Section: misc
+Priority: optional
+Maintainer: Geoffrey Biggs <geoff@openrobotics.org>
+Build-Depends: debhelper (>= 9.0.0), ros-iron-ament-cmake-gtest <!nocheck>, ros-iron-ament-cmake-ros, ros-iron-ament-lint-auto <!nocheck>, ros-iron-ament-lint-common <!nocheck>, ros-iron-fastcdr, ros-iron-fastrtps, ros-iron-fastrtps-cmake-module, ros-iron-osrf-testing-tools-cpp <!nocheck>, ros-iron-rcpputils, ros-iron-rcutils, ros-iron-rmw, ros-iron-rmw-dds-common, ros-iron-rmw-fastrtps-shared-cpp, ros-iron-rosidl-runtime-c, ros-iron-rosidl-typesupport-fastrtps-c, ros-iron-rosidl-typesupport-fastrtps-cpp, ros-iron-rosidl-typesupport-introspection-c, ros-iron-rosidl-typesupport-introspection-cpp, ros-iron-test-msgs <!nocheck>, ros-iron-ros-workspace
+Homepage: 
+Standards-Version: 3.9.2
+
+Package: ros-iron-rmw-fastrtps-dynamic-cpp
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-iron-ament-cmake, ros-iron-fastcdr, ros-iron-fastrtps, ros-iron-fastrtps-cmake-module, ros-iron-rcpputils, ros-iron-rcutils, ros-iron-rmw, ros-iron-rmw-dds-common, ros-iron-rmw-fastrtps-shared-cpp, ros-iron-rosidl-runtime-c, ros-iron-rosidl-typesupport-fastrtps-c, ros-iron-rosidl-typesupport-fastrtps-cpp, ros-iron-rosidl-typesupport-introspection-c, ros-iron-rosidl-typesupport-introspection-cpp, ros-iron-ros-workspace
+Description: Implement the ROS middleware interface using introspection type support.
